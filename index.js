@@ -85,6 +85,83 @@ function IQR(a){
     return Q3(a)-Q1(a);
 }
 
+function boxPlot(a, excludeOutliers = false){
+    if (!excludeOutliers){
+        return [min(a), Q1(a), median(a), Q3(a), max(a)]
+    }
+
+    let threshold = [Q1(a) - 1.5*IQR(a), Q3(a) + 1.5*IQR(a)];
+    let b = [];
+    let outliers = []
+    a.forEach((value) => {
+        if (value >= threshold[0] && value <= threshold[1]){
+            b.push(value);
+        }else{
+            outliers.push(value);
+        }
+    })
+    return [min(b), Q1(b), median(b), Q3(b), max(b), outliers];
+}
+
+function sum(a){
+    if (!a.length){
+        throw new Error("Array is empty")
+    }
+    let sum = 0;
+    a.forEach((val) => {
+        sum += val;
+    })
+    return sum;
+}
+
+function mean(a){
+    if (!a.length){
+        throw new Error("Array is empty")
+    }
+    return sum(a)/a.length;
+}
+
+function sampleStd(a){
+    let m = mean(a);
+    let n = a.length;
+    let rollingSum = 0;
+    a.forEach((val) => {
+        rollingSum += (val - m)**2;
+    })
+    return Math.sqrt(rollingSum/(n-1));
+}
+
+function populationStd(a){
+    let m = mean(a);
+    let n = a.length;
+    let rollingSum = 0;
+    a.forEach((val) => {
+        rollingSum += (val - m)**2;
+    })
+    return Math.sqrt(rollingSum/(n));
+}
+
+function pearsonCorrelation(x, y){
+    if (!x.length || !y.length){
+        throw new Error("Empty array");
+    }
+    if (x.length != y.length){
+        throw new Error("Lengths don't match");
+    }
+    const mx = mean(x);
+    const my = mean(y);
+    let num = 0;
+    for (let i=0; i<x.length; i++){
+        num += (x[i] - mx) * (y[i] - my);
+    }
+    let d1 = 0, d2 = 0;
+    for (let i=0; i<x.length; i++){
+        d1 += (x[i] - mx)**2;
+        d2 += (y[i] - my)**2;
+    }
+    let d = Math.sqrt(d1*d2);
+    return num/d;
+}
 
 module.exports = {
     min,
@@ -94,5 +171,25 @@ module.exports = {
     median,
     Q1,
     Q3,
-    IQR
+    IQR,
+    boxPlot,
+    sum,
+    mean,
+    sampleStd,
+    populationStd,
+    pearsonCorrelation
 }
+
+// exports.min = min
+// exports.max = max;
+// exports.range = range;
+// exports.quartile = quartile
+// exports.median = median;
+// exports.Q1 = Q1;
+// exports.Q3 = Q3;
+// exports.IQR = IQR;
+// exports.boxPlot = boxPlot;
+// exports.sum = sum;
+// exports.mean = mean;
+// exports.sampleStd = sampleStd;
+// exports.populationStd = populationStd;

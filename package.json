@@ -16,7 +16,4 @@
   },
   "homepage": "https://github.com/SeaUrc/npmStat#readme",
   "description": "",
-  "dependencies": {
-    "statlib": "^1.0.3"
-  }
 }

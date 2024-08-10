@@ -333,6 +333,11 @@ function tpdf(x, df) {
     return firstNumerator/firstDemon * second**(-1*(df+1)/2);
 }
 
+/*
+* Args
+* tcdf(lower (optional), upper, degrees of freedom)
+* returns the cumulative probabilty from lower to upper of the t-distribution with given degrees of freedom
+* */
 function tcdf(...args){
     let lower, upper, df;
     if (args.length === 2) {
@@ -356,6 +361,11 @@ function tcdf(...args){
     return cdfx(upper) - cdfx(lower);
 }
 
+/*
+* Args
+* invT(probability, degrees of freedom)
+* returns the point x at which the cumulative probability is equal to that given from a t-distribution with given degrees of freedom
+* */
 function invT(p, df) {
     if (p <= 0.0 || p >= 1.0) {
         throw new Error("p must be between 0 and 1");
@@ -372,6 +382,11 @@ function invT(p, df) {
     return quantile;
 }
 
+/*
+* Args
+* chipdf(x, degrees of freedom)
+* returns the probability density at x of a chi-square distribution with given degrees of freedom
+* */
 function chipdf(x, k){
     if (x <= 0){
         return 0;
@@ -382,8 +397,96 @@ function chipdf(x, k){
     return num/denom;
 }
 
-function chicdf(x, k){
-    return lowerIncompleteGamma(k/2, x/2) / gamma(k/2);
+/*
+* Args
+* chicdf(x, degrees of freedom)
+* returns the cumulative probability up to x (left tailed) of a chi-square distribution with given degrees of freedom
+* */
+function chicdf(...args){
+    let lower, upper, df;
+    if (args.length === 2) {
+        [upper, df] = args;
+        lower = 0;  // Assume the lower bound is min value
+    } else if (args.length === 3) {
+        [lower, upper, df] = args;
+        lower = Math.max(lower, 0);
+    } else {
+        throw new Error("Invalid number of arguments. Expected 2 or 3 arguments.");
+    }
+
+    const cdf = (x) => {
+        return (lowerIncompleteGamma(df/2, x/2) / gamma(df/2));
+    }
+    return cdf(upper) - cdf(lower);
+}
+
+/*
+* Args
+* fpdf(x, df1, df2)
+* returns the probability density of a F distribution with given degrees of freedom at x
+* */
+function fpdf(x, dfNum, dfDenom){
+    if (x < 0){
+        throw new Error("x cannot be <= 0!");
+    }
+    if (x == 0){
+        return 0;
+    }
+    let num = Math.sqrt((((dfNum*x)**dfNum) * (dfDenom**dfDenom)) / (((dfNum**x) + dfDenom) ** (dfNum+dfDenom)));
+    return num / (x * beta(dfNum*0.5, dfDenom*0.5));
+}
+
+/*
+* Args
+* fcdf(lower (optional), upper, df1, df2)
+* returns the cumulative probability from lower to upper of a F distribution with given degrees of freedom
+* */
+function fcdf(...args){
+    let lower, upper, df1, df2;
+    if (args.length === 3) {
+        [upper, df1, df2] = args;
+        lower = 0;  // Assume the lower bound is min value
+    } else if (args.length === 4) {
+        [lower, upper, df1, df2] = args;
+        lower = Math.max(lower, 0);
+    } else {
+        throw new Error("Invalid number of arguments. Expected 2 or 3 arguments.");
+    }
+    const cdf = (x) => {
+        return regularizedIncompleteBeta((df1*x)/(df1*x+df2), df1/2, df2/2);
+    }
+    return cdf(upper)-cdf(lower);
+}
+
+/*
+* Args
+* poissonpdf(lambda, k)
+* returns the probability mass of the poission distribution with lambda at k.
+* */
+function poissonpdf(lambda, k){ // should technically be called a probability mass function (PMF) but i wanted to keep the names the same
+    if (lambda <=0 ){
+        throw new Error("lambda must be in the interval (0, Infinity)");
+    }
+    if (k < 0){
+        throw new Error("k cannot be < 0");
+    }
+    if (!Number.isInteger(k)){
+        throw new Error("k must be an non-negative integer");
+    }
+    return (lambda**k) * Math.exp(-lambda) / factorial(k);
+}
+
+function poissoncdf(lambda, k){
+    if (lambda <=0 ){
+        throw new Error("lambda must be in the interval (0, Infinity)");
+    }
+    if (k < 0){
+        throw new Error("k cannot be < 0");
+    }
+    if (!Number.isInteger(k)){
+        throw new Error("k must be an non-negative integer");
+    }
+    return upperIncompleteGamma(Math.floor(k+1), lambda) / (factorial(Math.floor(k)));
 }
 
 /* --- Correlation and Regression --- */
@@ -426,6 +529,13 @@ function factorial(x) {
     return x * factorial(x - 1);
 }
 
+function choose(N, K){
+    if (!Number.isInteger(N) || !Number.isInteger(K)){
+        throw new Error("Non integer in combinatoric");
+    }
+    return ((factorial(N)) / (factorial(K) * factorial(N-K)));
+}
+
 function gamma(z) {
     // Lanczos approximation
     let g = 7;
@@ -443,11 +553,18 @@ function gamma(z) {
     }
 }
 
-function choose(N, K){
-    if (!Number.isInteger(N) || !Number.isInteger(K)){
-        throw new Error("Non integer in combinatoric");
+function lowerIncompleteGamma(s, z, kLimit=50){
+    let first = z**s * Math.exp(-z);
+    let powerSeries = 0;
+    for (let k = 0; k<=kLimit; k++){
+        powerSeries += (z**k) / pochhammer(s, k+1);
     }
-    return ((factorial(N)) / (factorial(K) * factorial(N-K)));
+    return first * powerSeries;
+}
+
+// lower + upper incomplete gamma = gamma
+function upperIncompleteGamma(s, z, kLimit=50){
+    return gamma(s) - lowerIncompleteGamma(s, z, kLimit);
 }
 
 function erf(x) {
@@ -531,15 +648,6 @@ function regularizedIncompleteBeta(x, a, b, maxIter=20){ // continued fraction a
     return firstPart*contFrac;
 }
 
-function lowerIncompleteGamma(s, z, kLimit=50){
-    let first = z**s * Math.exp(-z);
-    let powerSeries = 0;
-    for (let k = 0; k<=kLimit; k++){
-        powerSeries += (z**k) / pochhammer(s, k+1);
-    }
-    return first * powerSeries;
-}
-
 function pochhammer(x, n){
     let res = 1;
     for (let i = x; i<=(x+n-1); i++){
@@ -568,21 +676,30 @@ module.exports = {
     sampleStd,
     populationStd,
     coefficientOfVariation,
-    normalcdf,
     normalpdf,
+    normalcdf,
     invNorm,
-    binomcdf,
     binompdf,
+    binomcdf,
     invBinom,
     tpdf,
     tcdf,
     invT,
+    chipdf,
+    chicdf,
+    fpdf,
+    fcdf,
+    poissonpdf,
+    poissoncdf,
     pearsonCorrelation,
     factorial,
-    gamma,
     choose,
+    gamma,
+    lowerIncompleteGamma,
+    upperIncompleteGamma,
     erf,
     invErf,
     beta,
     regularizedIncompleteBeta,
+    pochhammer,
 }

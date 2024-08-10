@@ -15,5 +15,8 @@
     "url": "https://github.com/SeaUrc/npmStat/issues"
   },
   "homepage": "https://github.com/SeaUrc/npmStat#readme",
-  "description": ""
+  "description": "",
+  "dependencies": {
+    "statlib": "^1.0.3"
+  }
 }

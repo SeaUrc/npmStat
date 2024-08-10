@@ -175,7 +175,87 @@ function coefficientOfVariation(a) {
 }
 
 /* --- Probability Distributions --- */
+/*
+* Args
+* normalpdf(x, mean, standard variation)
+* returns the probability density of normal distribution at x
+* */
+function normalpdf(x, mu, sigma){
+    const sqrtTwoPi = Math.sqrt(2 * Math.PI);
+    const expInside = -1*((x-mu)**2 / (2*(sigma**2)));
+    return (1/(sigma*sqrtTwoPi)) * Math.exp(expInside);
+}
 
+/*
+* Args
+* normalcdf(upper bound, mean, standard variation)
+* normalcdf(lower bound, upper bound, mean, standard variation)
+* returns the cumulative probability from the lower to upper bound of the normal distribution
+* */
+function normalcdf(...args){
+    let lower, upper, mu, sigma;
+    if (args.length === 3) {
+        [upper, mu, sigma] = args;
+        lower = Number.MIN_VALUE;  // Assume the lower bound is min value
+    } else if (args.length === 4) {
+        [lower, upper, mu, sigma] = args;
+    } else {
+        throw new Error("Invalid number of arguments. Expected 3 or 4 arguments.");
+    }
+    return (1+erf((upper-mu)/(Math.sqrt(2)*sigma)))*0.5  -  (1+erf((lower-mu)/(Math.sqrt(2)*sigma)))*0.5;
+}
+
+/*
+* Args
+* binompdf(trials, probability of success for each trial, successes)
+* returns the probability density of binomial distribution with N, P with K successes
+* */
+function binompdf(N, P, K){
+    if (!Number.isInteger(N) || !Number.isInteger(K)){
+        throw new Error("N and K must be integers");
+    }
+    if (K > N){
+        throw new Error("# of successes cannot be higher than number of trials!");
+    }
+    if (K < 0){
+        throw new Error("Cannot have a negative number of successes");
+    }
+    if (P < 0){
+        throw new Error("Cannot have a negative probabilty of success");
+    }
+    if (P > 1){
+        throw new Error("Probability of success cannot be greater than 1");
+    }
+   return choose(N, K) * (P**K)* ((1-P)**(N-K));
+}
+
+/*
+* Args
+* binomcdf(trials, probability of success for each trial, successes)
+* returns the cumulative probabilty of the binomial distribution of K or fewer successes
+* */
+function binomcdf(N, P, K){
+    if (!Number.isInteger(N) || !Number.isInteger(K)){
+        throw new Error("N and K must be integers");
+    }
+    if (K > N){
+        throw new Error("# of successes cannot be higher than number of trials!");
+    }
+    if (K < 0){
+        throw new Error("Cannot have a negative number of successes");
+    }
+    if (P < 0){
+        throw new Error("Cannot have a negative probabilty of success");
+    }
+    if (P > 1){
+        throw new Error("Probability of success cannot be greater than 1");
+    }
+    let cdf = 0;
+    for (let i =0; i<=K; i++){
+        cdf += binompdf(N, P, i);
+    }
+    return cdf;
+}
 
 /* --- Correlation and Regression --- */
 function pearsonCorrelation(x, y) {
@@ -201,7 +281,6 @@ function pearsonCorrelation(x, y) {
 }
 
 /* --- Hypothesis Testing --- */
-
 
 /* --- RNG --- */
 
@@ -242,6 +321,29 @@ function choose(N, K){
     return ((factorial(N)) / (factorial(K) * factorial(N-K)));
 }
 
+function erf(x) {
+    let z;
+    const ERF_A = 0.147;
+    let the_sign_of_x;
+    if(0==x) {
+        the_sign_of_x = 0;
+        return 0;
+    } else if(x>0){
+        the_sign_of_x = 1;
+    } else {
+        the_sign_of_x = -1;
+    }
+
+    let one_plus_axsqrd = 1 + ERF_A * x * x;
+    let four_ovr_pi_etc = 4/Math.PI + ERF_A * x * x;
+    let ratio = four_ovr_pi_etc / one_plus_axsqrd;
+    ratio *= x * -x;
+    let expofun = Math.exp(ratio);
+    let radical = Math.sqrt(1-expofun);
+    z = radical * the_sign_of_x;
+    return z;
+}
+
 module.exports = {
     min,
     max,
@@ -259,6 +361,9 @@ module.exports = {
     sampleStd,
     populationStd,
     coefficientOfVariation,
+    erf,
+    normalcdf,
+    normalpdf,
     pearsonCorrelation,
     factorial,
     gamma,

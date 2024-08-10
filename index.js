@@ -207,6 +207,38 @@ function normalcdf(...args){
 
 /*
 * Args
+* invNorm(probability, mean, standard deviation)
+* returns x such that the cumulative probability is equal to the given probability
+* */
+function invNorm(p, mu=0, sigma=1, tail="lower") {
+    if (p < 0 || p > 1) {
+        throw new Error("Given probability must be in the range [0, 1]");
+    }
+    if (p == 0){
+        return Number.MIN_VALUE;
+    }
+    if (p == 1){
+        return Number.MAX_VALUE;
+    }
+    let pPrime = p;
+    if (tail.toLowerCase() == "lower"){
+        pPrime=p;
+    }else if (tail.toLowerCase() == "upper"){
+        pPrime = 1-p;
+    }else if (tail.toLowerCase() == "center"){
+        pPrime = 1 - ((1-p) / 2);
+    }else{
+        throw new Error("Tail not an available tail. lower, upper, and center are the only given tails");
+    }
+    let res = mu + sigma * Math.sqrt(2) * invErf(2 * pPrime - 1);
+    if (tail.toLowerCase() == "center"){
+        return [mu-(res-mu), res];
+    }
+    return res;
+}
+
+/*
+* Args
 * binompdf(trials, probability of success for each trial, successes)
 * returns the probability density of binomial distribution with N, P with K successes
 * */
@@ -255,6 +287,38 @@ function binomcdf(N, P, K){
         cdf += binompdf(N, P, i);
     }
     return cdf;
+}
+
+/*
+* Args
+* invBinom(cumulative probability, trials, probability of success in a trial)
+* returns the smallest value k such that the cumulative distribution is greater than or equal to the probability given
+* */
+function invBinom(probability, N, P) {
+    if (!Number.isInteger(N)){
+        throw new Error("N must be integers");
+    }
+    if (P < 0){
+        throw new Error("Cannot have a negative probabilty of success");
+    }
+    if (P > 1){
+        throw new Error("Probability of success cannot be greater than 1");
+    }
+    if (P < 0){
+        throw new Error("Cannot have a negative cumulative probability");
+    }
+    if (P > 1){
+        throw new Error("Cannot have a cumulative probability greater than 1");
+    }
+    let cProb = 0;
+    for (let K = 0; K <= N; K++) {
+        cProb += binompdf(N, P, k);
+        if (cProb >= probability) {
+            return K;
+        }
+    }
+    // If not found, return n;
+    return N;
 }
 
 /* --- Correlation and Regression --- */
@@ -325,24 +389,52 @@ function erf(x) {
     let z;
     const ERF_A = 0.147;
     let the_sign_of_x;
-    if(0==x) {
+    if (0 == x) {
         the_sign_of_x = 0;
         return 0;
-    } else if(x>0){
+    } else if (x > 0) {
         the_sign_of_x = 1;
     } else {
         the_sign_of_x = -1;
     }
 
     let one_plus_axsqrd = 1 + ERF_A * x * x;
-    let four_ovr_pi_etc = 4/Math.PI + ERF_A * x * x;
+    let four_ovr_pi_etc = 4 / Math.PI + ERF_A * x * x;
     let ratio = four_ovr_pi_etc / one_plus_axsqrd;
     ratio *= x * -x;
     let expofun = Math.exp(ratio);
-    let radical = Math.sqrt(1-expofun);
+    let radical = Math.sqrt(1 - expofun);
     z = radical * the_sign_of_x;
     return z;
 }
+
+// https://stackoverflow.com/questions/12556685/is-there-a-javascript-implementation-of-the-inverse-error-function-akin-to-matl
+function invErf(x) {
+    let z;
+    let a = 0.147;
+    let the_sign_of_x;
+    if (0 == x) {
+        the_sign_of_x = 0;
+    } else if (x > 0) {
+        the_sign_of_x = 1;
+    } else {
+        the_sign_of_x = -1;
+    }
+
+    if (0 != x) {
+        let ln_1minus_x_sqrd = Math.log(1 - x * x);
+        let ln_1minusxx_by_a = ln_1minus_x_sqrd / a;
+        let ln_1minusxx_by_2 = ln_1minus_x_sqrd / 2;
+        let ln_etc_by2_plus2 = ln_1minusxx_by_2 + (2 / (Math.PI * a));
+        let first_sqrt = Math.sqrt((ln_etc_by2_plus2 * ln_etc_by2_plus2) - ln_1minusxx_by_a);
+        let second_sqrt = Math.sqrt(first_sqrt - ln_etc_by2_plus2);
+        z = second_sqrt * the_sign_of_x;
+    } else { // x is zero
+        z = 0;
+    }
+    return z;
+}
+
 
 module.exports = {
     min,
@@ -361,11 +453,13 @@ module.exports = {
     sampleStd,
     populationStd,
     coefficientOfVariation,
-    erf,
     normalcdf,
     normalpdf,
+    invNorm,
     pearsonCorrelation,
     factorial,
     gamma,
-    choose
+    choose,
+    erf,
+    invErf
 }

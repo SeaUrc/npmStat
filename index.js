@@ -333,6 +333,46 @@ function tpdf(x, df) {
     return firstNumerator/firstDemon * second**(-1*(df+1)/2);
 }
 
+function tcdf(...args){
+    let lower, upper, df;
+    if (args.length === 2) {
+        [upper, df] = args;
+        lower = Number.MIN_VALUE;  // Assume the lower bound is min value
+    } else if (args.length === 3) {
+        [lower, upper, df] = args;
+    } else {
+        throw new Error("Invalid number of arguments. Expected 2 or 3 arguments.");
+    }
+    let func = (t) => {return (df/(t**2 + df))};
+    let cdfx = (x) => {
+        if (x == 0){
+            return 0.5;
+        }
+        if (x < 0){
+            return (0.5*regularizedIncompleteBeta(func(x), df/2, 0.5));
+        }
+        return (1 - 0.5*regularizedIncompleteBeta(func(x), df/2, 0.5))
+    };
+    return cdfx(upper) - cdfx(lower);
+}
+
+function invT(p, df) {
+    if (p <= 0.0 || p >= 1.0) {
+        throw new Error("p must be between 0 and 1");
+    }
+
+    const q = invNorm(p);
+    const q2 = q * q;
+    const a = (q2 + 1) / (4 * df);
+    const b = ((5 * q2 + 16) * q2 + 3) / (96 * df * df);
+    const c = (((3 * q2 + 19) * q2 + 17) * q2 - 15) / (384 * df * df * df);
+    const d = ((((79 * q2 + 776) * q2 + 1482) * q2 - 1920) * q2 - 945) / (92160 * df * df * df * df);
+
+    const quantile = q * (1 + a + b + c + d);
+    return quantile;
+}
+
+
 /* --- Correlation and Regression --- */
 function pearsonCorrelation(x, y) {
     if (!x.length || !y.length) {
@@ -451,16 +491,34 @@ function beta(z1, z2){
     return (gamma(z1)*gamma(z2))/gamma(z1+z2);
 }
 
+function recurseContinuedFractionIncompleteBeta(m, x, a, b, maxM){
+    if (m >= maxM){
+        return 1;
+    }
+    if (m == 0){
+        let d1 = -1*((a*(a+b)*x) / (a * (a+1)));
+        return 1/(1 + d1/(1 + recurseContinuedFractionIncompleteBeta(m+1, x, a, b, maxM)));
+    }
+
+    let d2mNum = m*(b-m)*x;
+    let d2mDenom = (a+2*m-1) * (a+2*m);
+    let d2m = d2mNum/d2mDenom;
+    let d2m1Num = (a+m)*(a+b+m)*(x);
+    let d2m1Denom = (a+2*m)*(a+2*m+1);
+    let d2m1 = -1*d2m1Num/d2m1Denom;
+
+    return (d2m/(1 + d2m1/(1 + recurseContinuedFractionIncompleteBeta(m+1, x, a, b, maxM))));
+}
+
 // https://dlmf.nist.gov/8.17#ii  8.17.22
 // https://www.jstor.org/stable/2235770
-function incompleteBeta(x, a, b){ // continued fraction approximation
+function regularizedIncompleteBeta(x, a, b, maxIter=20){ // continued fraction approximation
     let firstPart = (x**a)*((1-x)**b) / (a * beta(a, b));
-    let approxContinuedFrac = 0;
-    let maxIter = 20;
-    // for (let i=0; i<maxIter; i++){
-    //     let d2mNum = m
-    // }
+    let contFrac = recurseContinuedFractionIncompleteBeta(0, x, a, b, maxIter);
+    return firstPart*contFrac;
 }
+
+
 
 
 module.exports = {
@@ -487,11 +545,14 @@ module.exports = {
     binompdf,
     invBinom,
     tpdf,
+    tcdf,
+    invT,
     pearsonCorrelation,
     factorial,
     gamma,
     choose,
     erf,
     invErf,
-    beta
+    beta,
+    regularizedIncompleteBeta,
 }

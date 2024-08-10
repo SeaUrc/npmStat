@@ -1,6 +1,6 @@
 # Statlib
 
-# Description
+## Description
 A statistics library that can compute the following
 
 Descriptive statistics

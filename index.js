@@ -174,6 +174,13 @@ function coefficientOfVariation(a) {
     return (populationStd(a) / mean(a));
 }
 
+function skewness(a){
+    if (!a.length) {
+        throw new Error("Array is empty");
+    }
+    return 3*(mean(a) - median(a))/populationStd(a);
+}
+
 /* --- Probability Distributions --- */
 /*
 * Args
@@ -476,6 +483,11 @@ function poissonpdf(lambda, k){ // should technically be called a probability ma
     return (lambda**k) * Math.exp(-lambda) / factorial(k);
 }
 
+/*
+* Args
+* poissoncdf(lambda, k)
+* returns the cumulative probability from 0 to k of the poission distribution with lambda.
+* */
 function poissoncdf(lambda, k){
     if (lambda <=0 ){
         throw new Error("lambda must be in the interval (0, Infinity)");
@@ -488,6 +500,38 @@ function poissoncdf(lambda, k){
     }
     return upperIncompleteGamma(Math.floor(k+1), lambda) / (factorial(Math.floor(k)));
 }
+
+/*
+* Args
+* geopdf(p, x)
+* returns the probability that the first occurrence of success requires x independent trials, each with a probability of success of p
+* */
+function geopdf(p, x){
+    if (p<=0 || p > 1){
+        throw new Error("p must be within the range (0, 1]");
+    }
+    if (x < 1 || !Number.isInteger(x)){
+        throw new Error("x must be a natural number");
+    }
+    return (1-p)**(x-1) * p;
+}
+
+/*
+* Args
+* geocdf(p, x)
+* returns the probability that the first occurrence of success requires x or less independent trials, each with a probability of success of p
+* */
+function geocdf(p, x){
+    if (p<=0 || p > 1){
+        throw new Error("p must be within the range (0, 1]");
+    }
+    if (x < 1 || !Number.isInteger(x)){
+        throw new Error("x must be a natural number");
+    }
+    return 1-((1-p)**(Math.floor(x)));
+}
+
+
 
 /* --- Correlation and Regression --- */
 function pearsonCorrelation(x, y) {
@@ -676,6 +720,7 @@ module.exports = {
     sampleStd,
     populationStd,
     coefficientOfVariation,
+    skewness,
     normalpdf,
     normalcdf,
     invNorm,
@@ -691,6 +736,8 @@ module.exports = {
     fcdf,
     poissonpdf,
     poissoncdf,
+    geopdf,
+    geocdf,
     pearsonCorrelation,
     factorial,
     choose,

@@ -182,6 +182,35 @@ function skewness(a){
 }
 
 /* --- Probability Distributions --- */
+
+/*
+* Args
+* uniformpdf(a, b, x)
+* returns the probability density of uniform distribution at x
+* */
+function uniformpdf(a, b, x){
+    if (a <= x && x<=b){
+        return 1/(b-a);
+    }
+   return 0;
+}
+
+/*
+* Args
+* uniformpdf(a, b, x)
+* returns the cumulative probability of uniform distribution at x
+* */
+function uniformcdf(a, b, x){
+    if (x < a){
+        return 0;
+    }
+    if (x > b){
+        return 1;
+    }
+    return (x-a)/(b-a);
+}
+
+
 /*
 * Args
 * normalpdf(x, mean, standard variation)
@@ -559,6 +588,41 @@ function pearsonCorrelation(x, y) {
 /* --- Hypothesis Testing --- */
 
 /* --- RNG --- */
+function randomUniform(min = 0, max = 1){
+    return Math.random() * (max - min) + min;
+}
+
+function randomNormal(mean = 0, stdDev = 1) {
+    let u1 = Math.random();
+    let u2 = Math.random();
+    let z = Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
+    return z * stdDev + mean;
+}
+
+function randomBinomial(n, p) {
+    if (n*p > 500 && n*(1-p) > 500){ // when n becomes large
+        return randomNormal(n*p, Math.sqrt(n*p*(1-p)));
+    }
+    let count = 0;
+    for (let i = 0; i < n; i++) {
+        if (Math.random() < p) {
+            count++;
+        }
+    }
+    return count;
+}
+
+// is this right?
+// function randomPoisson(lambda) {
+//     let L = Math.exp(-lambda);
+//     let k = 0;
+//     let p = 1;
+//     do {
+//         k++;
+//         p *= Math.random();
+//     } while (p > L);
+//     return k - 1;
+// }
 
 /* --- Matrix Operations --- */
 
@@ -739,6 +803,9 @@ module.exports = {
     geopdf,
     geocdf,
     pearsonCorrelation,
+    randomUniform,
+    randomNormal,
+    randomBinomial,
     factorial,
     choose,
     gamma,

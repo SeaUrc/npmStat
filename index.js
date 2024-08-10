@@ -372,6 +372,19 @@ function invT(p, df) {
     return quantile;
 }
 
+function chipdf(x, k){
+    if (x <= 0){
+        return 0;
+    }
+    let num = x**((k/2) - 1) * Math.exp(-x/2);
+    let denom = 2**(k/2) * gamma(k/2);
+
+    return num/denom;
+}
+
+function chicdf(x, k){
+    return lowerIncompleteGamma(k/2, x/2) / gamma(k/2);
+}
 
 /* --- Correlation and Regression --- */
 function pearsonCorrelation(x, y) {
@@ -516,6 +529,23 @@ function regularizedIncompleteBeta(x, a, b, maxIter=20){ // continued fraction a
     let firstPart = (x**a)*((1-x)**b) / (a * beta(a, b));
     let contFrac = recurseContinuedFractionIncompleteBeta(0, x, a, b, maxIter);
     return firstPart*contFrac;
+}
+
+function lowerIncompleteGamma(s, z, kLimit=50){
+    let first = z**s * Math.exp(-z);
+    let powerSeries = 0;
+    for (let k = 0; k<=kLimit; k++){
+        powerSeries += (z**k) / pochhammer(s, k+1);
+    }
+    return first * powerSeries;
+}
+
+function pochhammer(x, n){
+    let res = 1;
+    for (let i = x; i<=(x+n-1); i++){
+        res *= i;
+    }
+    return res;
 }
 
 

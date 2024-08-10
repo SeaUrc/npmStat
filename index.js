@@ -321,6 +321,18 @@ function invBinom(probability, N, P) {
     return N;
 }
 
+/*
+* Args
+* tpdf(x, degrees of freedom)
+* returns the probability density of the t-distribution with given degrees of freedom at x
+* */
+function tpdf(x, df) {
+    let firstNumerator = gamma((df+1)/2);
+    let firstDemon = Math.sqrt(Math.PI*df) * gamma(df/2);
+    let second = 1+((x**2)/df);
+    return firstNumerator/firstDemon * second**(-1*(df+1)/2);
+}
+
 /* --- Correlation and Regression --- */
 function pearsonCorrelation(x, y) {
     if (!x.length || !y.length) {
@@ -435,6 +447,21 @@ function invErf(x) {
     return z;
 }
 
+function beta(z1, z2){
+    return (gamma(z1)*gamma(z2))/gamma(z1+z2);
+}
+
+// https://dlmf.nist.gov/8.17#ii  8.17.22
+// https://www.jstor.org/stable/2235770
+function incompleteBeta(x, a, b){ // continued fraction approximation
+    let firstPart = (x**a)*((1-x)**b) / (a * beta(a, b));
+    let approxContinuedFrac = 0;
+    let maxIter = 20;
+    // for (let i=0; i<maxIter; i++){
+    //     let d2mNum = m
+    // }
+}
+
 
 module.exports = {
     min,
@@ -456,10 +483,15 @@ module.exports = {
     normalcdf,
     normalpdf,
     invNorm,
+    binomcdf,
+    binompdf,
+    invBinom,
+    tpdf,
     pearsonCorrelation,
     factorial,
     gamma,
     choose,
     erf,
-    invErf
+    invErf,
+    beta
 }

@@ -1,7 +1,7 @@
 # Statlib
 
 ## Description
-A statistics library that can compute the following
+WIP. A statistics library that can compute the following
 
 ### Descriptive statistics
  - min

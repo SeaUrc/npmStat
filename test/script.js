@@ -1,4 +1,4 @@
-const {matmul, transpose, inverseMatrix, geopdf, randomUniform, randomNormal, randomBinomial, zTest} = require('statlib')
+const {onePropZTest} = require('statlib')
 // let x = [], y=[];
 // for (let i = 0; i<10; i++){
 //     x.push(Math.random() * 10);
@@ -9,4 +9,4 @@ const {matmul, transpose, inverseMatrix, geopdf, randomUniform, randomNormal, ra
 let test = [[2, 2, 1],[2, 1, 2], [1, 1, 2]];
 let test2 = [[4, 3, 0], [0, 3, 4], [0, 1, 0]];
 
-console.log(zTest(0, 1, 1, 6, "two tailed"));
+console.log(onePropZTest(0.4, 420, 1000, 'two'));

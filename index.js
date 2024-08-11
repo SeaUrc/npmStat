@@ -591,6 +591,7 @@ function pearsonCorrelation(x, y) {
 * args
 * Data: zTest(populationMean, populationStdDev, sampleList, tail)
 * Stats: zTest(populationMean, populationStdDev, sampleMean, number of samples, tail)
+* returns z score and p value
 * */
 function zTest(...args){
     if (args.length < 4 || args.length > 5){
@@ -626,12 +627,104 @@ function zTest(...args){
         pValue = normalcdf(zScore, 0, 1);
     } else if (tail === 'right') {
         pValue = 1 - normalcdf(zScore, 0, 1);
-    } else {
+    } else if (tail==='two'){
         pValue = 1 - normalcdf(-Math.abs(zScore), Math.abs(zScore), 0, 1);
+    }else{
+        throw new Error("unknown tail type. Use 'left', 'right', or 'two'");
     }
     return {zScore, pValue};
 }
 
+/*
+* args
+* Data: twoSampleZTest(sample1, sample2, tail)
+* Stats: twoSampleZTest(sampleStdDev1, sampleStdDev2, mean1, sampleSize1, mean2, sampleSize2, tail)
+* returns z score and p-value
+* */
+function twoSampleZTest(...args){
+    if (args.length != 3 && args.length != 7){
+        throw new Error("should be 3 or 7 arguments");
+    }
+    let mean1, mean2, variance1, variance2, sampleSize1, sampleSize2, tail;
+    if (args.length === 3){
+        let sample1 = args[0];
+        let sample2 = args[1];
+        tail = args[2];
+        mean1 = mean(sample1);
+        mean2 = mean(sample2);
+        variance1 = sampleVariance(sample1);
+        variance2 = sampleVariance(sample2);
+        sampleSize1 = sample1.length;
+        sampleSize2 = sample2.length;
+    }else{
+        mean1 = args[2];
+        mean2 = args[4];
+        variance1 = args[0]**2;
+        variance2 = args[1]**2;
+        sampleSize1 = args[3];
+        sampleSize2 = args[5];
+        tail = args[6];
+    }
+
+    const stderr =  Math.sqrt((variance1/sampleSize1) + (variance2/sampleSize2));;
+    const zScore = (mean1-mean2) / stderr;
+
+    let pValue;
+    if (tail === 'left'){
+        pValue = normalcdf(zScore, 0, 1);
+    }else if (tail === 'right'){
+        pValue = 1-normalcdf(zScore, 0, 1);
+    }else if (tail === 'two'){
+        pValue = 1-normalcdf(-Math.abs(zScore), Math.abs(zScore), 0, 1);
+    }else{
+        throw new Error("unknown tail type. Use 'left', 'right', or 'two'");
+    }
+    return {zScore, pValue};
+}
+
+/*
+* args
+* onePropZTest(hypothesized population proportion, success, trials, tail)
+* returns z score and p-value
+* */
+function onePropZTest(p0, x, n, tail = "two") {
+    const stdErr = Math.sqrt((p0 * (1 - p0)) / n);
+
+    const zScore = (x/n - p0) / stdErr;
+
+    let pValue;
+    if (tail === "left") {
+        pValue = normalcdf(zScore, 0, 1);
+    } else if (tail === "right") {
+        pValue = 1 - normalcdf(zScore, 0, 1);
+    } else if (tail === "two") {
+        pValue = 1 - normalcdf(-Math.abs(zScore), Math.abs(zScore), 0, 1);
+    } else {
+        throw new Error("Invalid tail type specified. Use 'two-tailed', 'left-tailed', or 'right-tailed'.");
+    }
+
+    return {zScore, pValue}
+}
+
+
+function twoProportionZTest(x1, n1, x2, n2, tail = "two") {
+    const pPooled = (x1+x2)/(n1+n2);
+    const stdErr = Math.sqrt(pPooled * (1-pPooled) * (1/n1 + 1/n2));
+    const zScore = (x1/n1 - x2/n2) / stdErr;
+
+    let pValue;
+    if (tail === "left") {
+        pValue = normalcdf(zScore, 0, 1);
+    } else if (tail === "right") {
+        pValue = 1 - normalcdf(zScore, 0, 1);
+    } else if (tail === "two") {
+        pValue = 1 - normalcdf(-Math.abs(zScore), Math.abs(zScore), 0, 1);
+    } else {
+        throw new Error("Invalid tail type specified. Use 'two-tailed', 'left-tailed', or 'right-tailed'.");
+    }
+
+    return {zScore, pValue}
+}
 
 /* --- RNG --- */
 function randomUniform(min = 0, max = 1){
@@ -888,6 +981,8 @@ module.exports = {
     geocdf,
     pearsonCorrelation,
     zTest,
+    twoSampleZTest,
+    onePropZTest,
     randomUniform,
     randomNormal,
     randomBinomial,

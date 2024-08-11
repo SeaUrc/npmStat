@@ -3,7 +3,7 @@
 ## Description
 A statistics library that can compute the following
 
-Descriptive statistics
+### Descriptive statistics
  - min
  - max
  - range
@@ -16,7 +16,7 @@ Descriptive statistics
  - standard deviation (sample and population)
  - coefficient of variation
 
-Probability Distributions
+### Probability Distributions
  - normal: pdf, cdf, inverse/quantile
  - binomial: pdf, cdf, inverse/quantile
  - T: pdf, cdf, inverse/quantile
@@ -24,10 +24,18 @@ Probability Distributions
  - F: pdf, cdf
  - poisson: pdf, cdf
 
-Correlation and Regression
+### Correlation and Regression
  - pearson correlation
 
-Miscellaneous Helpers
+### Hypothesis Testing
+ - z test
+
+### Basic Matrix Operation
+ - matrix multiplication
+ - transpose
+ - inverse
+
+### Miscellaneous Helpers
  - factorial
  - choose (combinatorics)
  - gamma function

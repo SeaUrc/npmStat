@@ -1,5 +1,4 @@
-const {geocdf, geopdf, randomUniform, randomNormal, randomBinomial} = require('statlib')
-const {binomcdf} = require("../index");
+const {matmul, transpose, inverseMatrix, geopdf, randomUniform, randomNormal, randomBinomial, zTest} = require('statlib')
 // let x = [], y=[];
 // for (let i = 0; i<10; i++){
 //     x.push(Math.random() * 10);
@@ -7,14 +6,7 @@ const {binomcdf} = require("../index");
 // }
 // console.log(geocdf(0.453, 3));
 
-let test = []
-let mx = 10000000;
-let buckets = 10;
-for (let i =0; i<buckets; i++){
-    test.push(0);
-}
-for (let i=0; i<mx; i++){
+let test = [[2, 2, 1],[2, 1, 2], [1, 1, 2]];
+let test2 = [[4, 3, 0], [0, 3, 4], [0, 1, 0]];
 
-}
-
-console.log(test);
+console.log(zTest(0, 1, 1, 6, "two tailed"));

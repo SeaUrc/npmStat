@@ -587,6 +587,52 @@ function pearsonCorrelation(x, y) {
 
 /* --- Hypothesis Testing --- */
 
+/*
+* args
+* Data: zTest(populationMean, populationStdDev, sampleList, tail)
+* Stats: zTest(populationMean, populationStdDev, sampleMean, number of samples, tail)
+* */
+function zTest(...args){
+    if (args.length < 4 || args.length > 5){
+        throw new Error("found " + args.length + " parameters but expected 4 or 5");
+    }
+
+    let stats = true;
+    args.forEach((arg) => {
+        if (Array.isArray(arg)){
+            stats = false;
+        }
+    })
+
+    let populationMean, populationStdDev, sampleMean, N, tail;
+    if (stats) {
+        populationMean = args[0];
+        populationStdDev = args[1];
+        sampleMean = args[2];
+        N = args[3];
+        tail = args[4];
+    }else{
+        populationMean = args[0];
+        populationStdDev = args[1];
+        sampleMean = mean(args[2]);
+        N = args[2].length;
+        tail = args[3];
+    }
+
+    const stdErr = populationStdDev / Math.sqrt(N);
+    const zScore = (sampleMean - populationMean) / stdErr;
+    let pValue;
+    if (tail === 'left') {
+        pValue = normalcdf(zScore, 0, 1);
+    } else if (tail === 'right') {
+        pValue = 1 - normalcdf(zScore, 0, 1);
+    } else {
+        pValue = 1 - normalcdf(-Math.abs(zScore), Math.abs(zScore), 0, 1);
+    }
+    return {zScore, pValue};
+}
+
+
 /* --- RNG --- */
 function randomUniform(min = 0, max = 1){
     return Math.random() * (max - min) + min;
@@ -612,19 +658,57 @@ function randomBinomial(n, p) {
     return count;
 }
 
-// is this right?
-// function randomPoisson(lambda) {
-//     let L = Math.exp(-lambda);
-//     let k = 0;
-//     let p = 1;
-//     do {
-//         k++;
-//         p *= Math.random();
-//     } while (p > L);
-//     return k - 1;
-// }
+function randomPoisson(lambda) {
+    let L = Math.exp(-lambda);
+    let k = 0;
+    let p = 1;
+    do {
+        k++;
+        p *= Math.random();
+    } while (p > L);
+    return k - 1;
+}
 
 /* --- Matrix Operations --- */
+
+function matmul(A, B){ // N1,N2 x N2xN3 = N1,N3
+    let result = Array(A.length).fill().map(() => Array(B[0].length).fill(0)); // N1,N3
+    for (let i = 0; i < A.length; i++) {
+        for (let j = 0; j < B[0].length; j++) {
+            for (let k = 0; k < B.length; k++) {
+                result[i][j] += A[i][k] * B[k][j];
+            }
+        }
+    }
+    return result;
+}
+
+function transpose(A){
+    return A[0].map((_, colIndex) => A.map(row => row[colIndex]));
+}
+
+function inverseMatrix(A) { // matrix x answer = identity
+    const size = A.length;
+    const identity = Array(size).fill().map((_, i) => Array(size).fill(0).map((_, j) => (i === j ? 1 : 0)));
+
+    for (let i = 0; i < size; i++) {
+        let diag = A[i][i];
+        for (let j = 0; j < size; j++) {
+            A[i][j] /= diag;
+            identity[i][j] /= diag;
+        }
+        for (let k = 0; k < size; k++) {
+            if (k !== i) {
+                let factor = A[k][i];
+                for (let j = 0; j < size; j++) {
+                    A[k][j] -= factor * A[i][j];
+                    identity[k][j] -= factor * identity[i][j];
+                }
+            }
+        }
+    }
+    return identity;
+}
 
 /* --- Misc --- */
 function factorial(x) {
@@ -803,9 +887,14 @@ module.exports = {
     geopdf,
     geocdf,
     pearsonCorrelation,
+    zTest,
     randomUniform,
     randomNormal,
     randomBinomial,
+    randomPoisson,
+    matmul,
+    transpose,
+    inverseMatrix,
     factorial,
     choose,
     gamma,

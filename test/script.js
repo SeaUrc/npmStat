@@ -1,4 +1,4 @@
-const {onePropZTest} = require('statlib')
+const {chiSquareTest} = require('statlib')
 // let x = [], y=[];
 // for (let i = 0; i<10; i++){
 //     x.push(Math.random() * 10);
@@ -9,4 +9,4 @@ const {onePropZTest} = require('statlib')
 let test = [[2, 2, 1],[2, 1, 2], [1, 1, 2]];
 let test2 = [[4, 3, 0], [0, 3, 4], [0, 1, 0]];
 
-console.log(onePropZTest(0.4, 420, 1000, 'two'));
+console.log(chiSquareTest(test));

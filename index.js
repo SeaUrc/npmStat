@@ -232,7 +232,7 @@ function normalcdf(...args){
     let lower, upper, mu, sigma;
     if (args.length === 3) {
         [upper, mu, sigma] = args;
-        lower = Number.MIN_VALUE;  // Assume the lower bound is min value
+        lower = -1e99;  // Assume the lower bound is min value
     } else if (args.length === 4) {
         [lower, upper, mu, sigma] = args;
     } else {
@@ -251,10 +251,10 @@ function invNorm(p, mu=0, sigma=1, tail="lower") {
         throw new Error("Given probability must be in the range [0, 1]");
     }
     if (p == 0){
-        return Number.MIN_VALUE;
+        return -1e99;
     }
     if (p == 1){
-        return Number.MAX_VALUE;
+        return 1e99;
     }
     let pPrime = p;
     if (tail.toLowerCase() == "lower"){
@@ -378,7 +378,7 @@ function tcdf(...args){
     let lower, upper, df;
     if (args.length === 2) {
         [upper, df] = args;
-        lower = Number.MIN_VALUE;  // Assume the lower bound is min value
+        lower = -1e99;  // Assume the lower bound is min value
     } else if (args.length === 3) {
         [lower, upper, df] = args;
     } else {
@@ -706,7 +706,11 @@ function onePropZTest(p0, x, n, tail = "two") {
     return {zScore, pValue}
 }
 
-
+/*
+* args
+* twoProportionZTest(success1, sampleSize1, success2, sampleSize2, tail)
+* returns z score and p-value
+* */
 function twoProportionZTest(x1, n1, x2, n2, tail = "two") {
     const pPooled = (x1+x2)/(n1+n2);
     const stdErr = Math.sqrt(pPooled * (1-pPooled) * (1/n1 + 1/n2));
@@ -724,6 +728,160 @@ function twoProportionZTest(x1, n1, x2, n2, tail = "two") {
     }
 
     return {zScore, pValue}
+}
+
+/*
+* args
+* Data: tTest(population mean, sample list, tail)
+* Stats: tTest(population mean, sample mean, sample standard deviation, sample size, tail)
+* returns z score and p-value
+* */
+function tTest(...args){
+    if (args.length != 3 && args.length != 5){
+        throw new Error("found " + args.length + " parameters but expected 3 or 5");
+    }
+
+    let populationMean, sampleMean, sampleStdDev, N, tail;
+    if (args.length === 5) {
+        populationMean = args[0];
+        sampleMean = args[1];
+        sampleStdDev = args[2];
+        N = args[3];
+        tail = args[4];
+    }else{
+        populationMean = args[0];
+        sampleMean = mean(args[1]);
+        sampleStdDev = sampleStd(args[1]);
+        N = args[1].length;
+        tail = args[2];
+    }
+
+
+    const testStat = (sampleMean - populationMean) / (sampleStdDev/(Math.sqrt(N)));
+    let pValue;
+
+    if (tail === 'left') {
+        pValue = tcdf(testStat, N-1);
+    } else if (tail === 'right') {
+        pValue = 1-tcdf(testStat, N-1);
+    } else if (tail==='two'){
+        pValue = 1 - tcdf(-Math.abs(testStat), Math.abs(testStat), N-1);
+    }else{
+        throw new Error("unknown tail type. Use 'left', 'right', or 'two'");
+    }
+    return {testStat, pValue};
+}
+
+/*
+* args
+* Data: twoSampleTTest(sample list 1, sample list 2, pooling, tail)
+* Stats: twoSampleTTest(sample mean 1, sample mean 2, sample standard deviation 1, sample standard deviation 2, sample size 1, sample size2, pooling, tail)
+* returns z score and p-value
+* */
+function twoSampleTTest(...args){
+    if (args.length != 4 && args.length != 8){
+        throw new Error("found " + args.length + " parameters but expected 4 or 8");
+    }
+
+    let mean1, mean2, variance1, variance2, n1, n2, pooling, tail;
+    if (args.length === 8) {
+        mean1 = args[0];
+        variance1 = args[1]**2;
+        n1 = args[2];
+        mean2 = args[3];
+        variance2 = args[4]**2;
+        n2 = args[5];
+        pooling = args[6];
+        tail = args[7];
+    }else{
+        mean1 = mean(args[0]);
+        mean2 = mean(args[1]);
+        variance1 = sampleVariance(args[0]);
+        variance2 = sampleVariance(args[1]);
+        n1 = args[0].length;
+        n2 = args[1].length;
+        pooling = args[2];
+        tail = args[3];
+    }
+
+
+    let testStat;
+    let df;
+    if (pooling){
+        const SDpooled = Math.sqrt(((n1-1) * variance1 + (n2-1) * variance2 ) / (n1+n2-2));
+        const SEpooled = SDpooled * Math.sqrt(1/n1 + 1/n2);
+        testStat = (mean1 - mean2) / SEpooled;
+        df = n1+n2-2;
+    }else{
+        const SDunequal = Math.sqrt((variance1/n1) + (variance2/n2));
+        testStat = (mean1 - mean2) / SDunequal;
+        // Welch-Satterthwaite equation.
+        const dfNum = (variance1/n1 + variance2/n2)**2;
+        const dfDenom = ( (variance1**2) / ((n1**2) * (n1-1)) ) + ( (variance2**2) / ((n2**2) * (n2-1)));
+        df = dfNum/dfDenom;
+    }
+
+
+    // const testStat = (sampleMean - populationMean) / (sampleStdDev/(Math.sqrt(N)));
+    let pValue;
+
+    if (tail === 'left') {
+        pValue = tcdf(testStat, df);
+    } else if (tail === 'right') {
+        pValue = 1-tcdf(testStat, df);
+    } else if (tail==='two'){
+        pValue = 1 - tcdf(-Math.abs(testStat), Math.abs(testStat), df);
+    }else{
+        throw new Error("unknown tail type. Use 'left', 'right', or 'two'");
+    }
+    return {testStat, pValue};
+}
+
+/*
+* args
+* chiSquareTest(observer)
+* returns chi square statistics and p value
+* */
+
+// BUGGY
+function chiSquareTest(A){
+    if (!A.length || !A[0].length){
+        throw new Error("size of A must be greater than 1");
+    }
+    const numRows = A.length;
+    const numCols = A[0].length;
+
+    const rowTot = Array(numRows).fill(0);
+    const colTot = Array(numCols).fill(0);
+    let grandTot = 0;
+
+    for (let i=0; i<numRows; i++){
+        for (let j=0; j<numCols; j++){
+            rowTot[i] += A[i][j];
+            colTot[j] += A[i][j];
+            grandTot += A[i][j];
+        }
+    }
+
+    const B = Array.from({length: numRows}, () => Array(numCols).fill(0));
+    for (let i=0; i<numRows; i++){
+        for (let j=0; j<numCols; j++){
+            B[i][j] = (rowTot[i] * colTot[j]) / grandTot;
+        }
+    }
+    console.log(B);
+
+    let chiSquare = 0;
+    for (let i=0; i<numRows; i++){
+        for (let j=0; j<numCols; j++){
+            chiSquare = ((A[i][j] - B[i][j])**2) / B[i][j];
+        }
+    }
+
+    const df = (numRows-1) * (numCols-1);
+
+    const pValue = 1-chicdf(chiSquare, df);
+    return {chiSquare, pValue};
 }
 
 /* --- RNG --- */
@@ -983,6 +1141,10 @@ module.exports = {
     zTest,
     twoSampleZTest,
     onePropZTest,
+    twoProportionZTest,
+    tTest,
+    twoSampleTTest,
+    // chiSquareTest,
     randomUniform,
     randomNormal,
     randomBinomial,

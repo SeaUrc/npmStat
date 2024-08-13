@@ -893,7 +893,7 @@ function chiSquareGOF(A, B){
         throw new Error("lengths of observed and expected must be greater than 0")
     }
 
-    let N = A.length;
+    const N = A.length;
     let chiSquare = 0;
     for (let i=0; i<N; i++){
         chiSquare += ((A[i] - B[i])**2) / B[i];
@@ -905,7 +905,64 @@ function chiSquareGOF(A, B){
     return {chiSquare, pValue};
 }
 
-// TODO Linreg T test, 2-sample F test, ANOVA
+
+/*
+* args
+* linRegTTest(xlist, ylist, tail)
+* returns slope, intercept, test statistics, p value
+* */
+function linRegTTest(x, y, tail='two'){
+    if (x.length != y.length){
+        throw new Error("x and y are not the same length");
+    }
+    const N = x.length;
+
+    const meanX = mean(x);
+    const meanY = mean(y);
+
+    let SSxy = 0;
+    let SSxx = 0;
+    for (let i=0; i<N; i++){
+        SSxy += (x[i] - meanX) * (y[i] - meanY);
+        SSxx += (x[i] - meanX)**2;
+    }
+
+    const b1 = SSxy/SSxx;
+    const b0 = meanY - b1*meanX;
+
+    const yPred = x.map((i) => {return (b0 + b1*i)});
+
+    let resSS = 0;
+    for (let i=0; i<N; i++){
+        resSS += (y[i] - yPred[i]) ** 2;
+    }
+
+    const s = Math.sqrt(resSS / (N-2));
+    const SEb1 = s / Math.sqrt(SSxx);
+
+    const tStat = b1 / SEb1;
+    const df = N-2;
+
+    let pVal;
+    if (tail == 'two'){
+        pVal = 1 - tcdf(-Math.abs(tStat), Math.abs(tStat), df);
+    }else if (tail == 'left'){
+        pVal = tcdf(tStat, df);
+    }else if (tail == 'right'){
+        pVal = 1 - tcdf(tStat, df);
+    }else{
+        throw new Error("unsupported tail type. Use 'left', 'right', or 'two'");
+    }
+
+    return {
+        b1,
+        b0,
+        tStat,
+        pVal
+    };
+}
+
+// TODO 2-sample F test, ANOVA
 
 /* --- RNG --- */
 function randomUniform(min = 0, max = 1){
@@ -1169,6 +1226,7 @@ module.exports = {
     twoSampleTTest,
     chiSquareTest,
     chiSquareGOF,
+    linRegTTest,
     randomUniform,
     randomNormal,
     randomBinomial,

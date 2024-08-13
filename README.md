@@ -27,7 +27,6 @@ It can compute the following
 
 ### Correlation and Regression
  - pearson correlation
- - W.I.P.
 
 ### Hypothesis Testing
  - z test
@@ -38,7 +37,7 @@ It can compute the following
  - 2 sample t test
  - χ2 test
  - χ2 goodness of fit
- - W.I.P.
+ - linear regression t test
 
 ### Basic Matrix Operation
  - matrix multiplication
@@ -56,3 +55,7 @@ It can compute the following
  - beta function
  - regularized incomplete beta function
  - pochhammer
+
+
+If you find any problems, open an issue on github.
+I'm still adding new function pretty regularly.

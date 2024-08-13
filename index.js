@@ -250,24 +250,24 @@ function invNorm(p, mu=0, sigma=1, tail="lower") {
     if (p < 0 || p > 1) {
         throw new Error("Given probability must be in the range [0, 1]");
     }
-    if (p == 0){
+    if (p === 0){
         return -1e99;
     }
-    if (p == 1){
+    if (p === 1){
         return 1e99;
     }
     let pPrime = p;
-    if (tail.toLowerCase() == "lower"){
+    if (tail.toLowerCase() === "lower"){
         pPrime=p;
-    }else if (tail.toLowerCase() == "upper"){
+    }else if (tail.toLowerCase() === "upper"){
         pPrime = 1-p;
-    }else if (tail.toLowerCase() == "center"){
+    }else if (tail.toLowerCase() === "center"){
         pPrime = 1 - ((1-p) / 2);
     }else{
         throw new Error("Tail not an available tail. lower, upper, and center are the only given tails");
     }
     let res = mu + sigma * Math.sqrt(2) * invErf(2 * pPrime - 1);
-    if (tail.toLowerCase() == "center"){
+    if (tail.toLowerCase() === "center"){
         return [mu-(res-mu), res];
     }
     return res;
@@ -386,7 +386,7 @@ function tcdf(...args){
     }
     let func = (t) => {return (df/(t**2 + df))};
     let cdfx = (x) => {
-        if (x == 0){
+        if (x === 0){
             return 0.5;
         }
         if (x < 0){
@@ -465,7 +465,7 @@ function fpdf(x, dfNum, dfDenom){
     if (x < 0){
         throw new Error("x cannot be <= 0!");
     }
-    if (x == 0){
+    if (x === 0){
         return 0;
     }
     let num = Math.sqrt((((dfNum*x)**dfNum) * (dfDenom**dfDenom)) / (((dfNum**x) + dfDenom) ** (dfNum+dfDenom)));
@@ -567,7 +567,7 @@ function pearsonCorrelation(x, y) {
     if (!x.length || !y.length) {
         throw new Error("Empty array");
     }
-    if (x.length != y.length) {
+    if (x.length !== y.length) {
         throw new Error("Lengths don't match");
     }
     const mx = mean(x);
@@ -642,7 +642,7 @@ function zTest(...args){
 * returns z score and p-value
 * */
 function twoSampleZTest(...args){
-    if (args.length != 3 && args.length != 7){
+    if (args.length !== 3 && args.length !== 7){
         throw new Error("should be 3 or 7 arguments");
     }
     let mean1, mean2, variance1, variance2, sampleSize1, sampleSize2, tail;
@@ -737,7 +737,7 @@ function twoProportionZTest(x1, n1, x2, n2, tail = "two") {
 * returns z score and p-value
 * */
 function tTest(...args){
-    if (args.length != 3 && args.length != 5){
+    if (args.length !== 3 && args.length !== 5){
         throw new Error("found " + args.length + " parameters but expected 3 or 5");
     }
 
@@ -779,7 +779,7 @@ function tTest(...args){
 * returns z score and p-value
 * */
 function twoSampleTTest(...args){
-    if (args.length != 4 && args.length != 8){
+    if (args.length !== 4 && args.length !== 8){
         throw new Error("found " + args.length + " parameters but expected 4 or 8");
     }
 
@@ -886,10 +886,10 @@ function chiSquareTest(A){
 * returns chi square statistics, p value
 * */
 function chiSquareGOF(A, B){
-    if (!A.length != !B.length){
+    if (!A.length !== !B.length){
         throw new Error("lengths of observed and expected must be the same");
     }
-    if (A.length == 0){
+    if (A.length === 0){
         throw new Error("lengths of observed and expected must be greater than 0")
     }
 
@@ -912,7 +912,7 @@ function chiSquareGOF(A, B){
 * returns slope, intercept, test statistics, p value
 * */
 function linRegTTest(x, y, tail='two'){
-    if (x.length != y.length){
+    if (x.length !== y.length){
         throw new Error("x and y are not the same length");
     }
     const N = x.length;
@@ -944,11 +944,11 @@ function linRegTTest(x, y, tail='two'){
     const df = N-2;
 
     let pVal;
-    if (tail == 'two'){
+    if (tail === 'two'){
         pVal = 1 - tcdf(-Math.abs(tStat), Math.abs(tStat), df);
-    }else if (tail == 'left'){
+    }else if (tail === 'left'){
         pVal = tcdf(tStat, df);
-    }else if (tail == 'right'){
+    }else if (tail === 'right'){
         pVal = 1 - tcdf(tStat, df);
     }else{
         throw new Error("unsupported tail type. Use 'left', 'right', or 'two'");
@@ -969,7 +969,7 @@ function linRegTTest(x, y, tail='two'){
 * returns test statistics and p value
 * */
 function twoSampleFTest(...args){
-    if (args.length != 3 && args.length != 5){
+    if (args.length !== 3 && args.length !== 5){
         throw new Error("found " + args.length + " parameters but expected 3 or 5");
     }
 
@@ -996,9 +996,9 @@ function twoSampleFTest(...args){
     const df2 = n2-1;
 
     let pVal;
-    if (tail == 'left'){
+    if (tail === 'left'){
         pVal = fcdf(F, df1, df2);
-    }else if (tail == 'right'){
+    }else if (tail === 'right'){
         pVal = 1-fcdf(F, df1, df2);
     }else if (tail === 'two'){
         if (F > 1){
@@ -1013,6 +1013,12 @@ function twoSampleFTest(...args){
     return {F, pVal}
 }
 
+
+/*
+* args
+* ANOVA(samples);
+* returns test statistics and p value
+* */
 function ANOVA(samples){
     const K = samples.length;
     let N = 0;
@@ -1051,6 +1057,38 @@ function ANOVA(samples){
 
     return {F, pVal};
 }
+
+/* --- Confidence Intervals --- */
+
+/*
+* args
+* Data: zInterval(population standard deviation, sample list, confidence level)
+* Stats: zInterval(population standard deviation, sample mean, sample size, confidence level)
+* */
+function zInterval(...args){
+    if (args.length !== 3 && args.length !== 4){
+        throw new Error(`found ${args.length} args but only 3 or 4 are expected`)
+    }
+    let populationStdDev, sampleMean, N, confidence;
+    if (args.length === 4){
+        populationStdDev = args[0];
+        sampleMean = args[1];
+        N = args[2];
+        confidence = args[3];
+    }else{
+        populationStdDev = args[0];
+        sampleMean = mean(args[1]);
+        N = args[1].length;
+        confidence = args[2];
+    }
+    
+    const zCrit = invNorm(confidence, 0, 1, 'center')[1]; // only care abt positive z critical
+    const moe = zCrit * (populationStdDev / Math.sqrt(N));
+    console.log(moe);
+    return [sampleMean - moe, sampleMean + moe];
+}
+
+
 
 /* --- RNG --- */
 function randomUniform(min = 0, max = 1){
@@ -1134,7 +1172,7 @@ function factorial(x) {
     if (!Number.isInteger(x)) {
         throw new Error("Non integer factorial. If this was intentional, use the gamma function")
     }
-    if (x == 1) {
+    if (x === 1) {
         return 1;
     }
     return x * factorial(x - 1);
@@ -1182,7 +1220,7 @@ function erf(x) {
     let z;
     const ERF_A = 0.147;
     let the_sign_of_x;
-    if (0 == x) {
+    if (0 === x) {
         the_sign_of_x = 0;
         return 0;
     } else if (x > 0) {
@@ -1206,7 +1244,7 @@ function invErf(x) {
     let z;
     let a = 0.147;
     let the_sign_of_x;
-    if (0 == x) {
+    if (0 === x) {
         the_sign_of_x = 0;
     } else if (x > 0) {
         the_sign_of_x = 1;
@@ -1214,7 +1252,7 @@ function invErf(x) {
         the_sign_of_x = -1;
     }
 
-    if (0 != x) {
+    if (0 !== x) {
         let ln_1minus_x_sqrd = Math.log(1 - x * x);
         let ln_1minusxx_by_a = ln_1minus_x_sqrd / a;
         let ln_1minusxx_by_2 = ln_1minus_x_sqrd / 2;
@@ -1236,7 +1274,7 @@ function recurseContinuedFractionIncompleteBeta(m, x, a, b, maxM){
     if (m >= maxM){
         return 1;
     }
-    if (m == 0){
+    if (m === 0){
         let d1 = -1*((a*(a+b)*x) / (a * (a+1)));
         return 1/(1 + d1/(1 + recurseContinuedFractionIncompleteBeta(m+1, x, a, b, maxM)));
     }
@@ -1315,6 +1353,7 @@ module.exports = {
     linRegTTest,
     twoSampleFTest,
     ANOVA,
+    zInterval,
     randomUniform,
     randomNormal,
     randomBinomial,

@@ -962,7 +962,95 @@ function linRegTTest(x, y, tail='two'){
     };
 }
 
-// TODO 2-sample F test, ANOVA
+/*
+* args
+* Data: twoSampleFTest(sample1, sample2, tail);
+* Stats: twoSampleFTest(standard deviation 1, sample size 1, standard deviation 2, sample size 2, tail)
+* returns test statistics and p value
+* */
+function twoSampleFTest(...args){
+    if (args.length != 3 && args.length != 5){
+        throw new Error("found " + args.length + " parameters but expected 3 or 5");
+    }
+
+    let var1, var2, n1, n2, tail;
+    if (args.length === 5){
+        var1 = args[0]**2;
+        n1 = args[1];
+        var2 = args[2]**2;
+        n2 = args[3];
+        tail = args[4];
+    }else{
+        let sample1 = args[0];
+        let sample2 = args[1];
+        tail = args[2];
+
+        var1 = sampleVariance(sample1);
+        var2 = sampleVariance(sample2);
+        n1 = sample1.length;
+        n2 = sample2.length;
+    }
+
+    const F = var1/var2;
+    const df1 = n1-1;
+    const df2 = n2-1;
+
+    let pVal;
+    if (tail == 'left'){
+        pVal = fcdf(F, df1, df2);
+    }else if (tail == 'right'){
+        pVal = 1-fcdf(F, df1, df2);
+    }else if (tail === 'two'){
+        if (F > 1){
+            pVal = 2 * (1 - fcdf(F, df1, df2))
+        }else{
+            pVal = 2 * fcdf(F, df1, df2);
+        }
+    }else{
+        throw new Error("Unsupported tail type. Use 'left', 'right', or 'two'")
+    }
+
+    return {F, pVal}
+}
+
+function ANOVA(samples){
+    const K = samples.length;
+    let N = 0;
+    for (let i=0; i<K; i++){
+        N += samples[i].length;
+    }
+
+    const means = samples.map((sample) => mean(sample));
+    let totMean = 0;
+
+    samples.forEach((sample) => {
+        sample.forEach((s) => {
+            totMean += s;
+        })
+    })
+    totMean /= N;
+
+    let SSB = 0;
+    let SSW = 0;
+    samples.forEach((sample, i) => {
+        SSB += sample.length * ((means[i] - totMean) ** 2);
+        sample.forEach((s) => {
+            SSW += (s - means[i]) ** 2;
+        })
+    })
+
+    const dfb = K-1;
+    const dfw = N-K;
+
+    const MSB = SSB / dfb;
+    const MSW = SSW / dfw;
+
+    const F = MSB/MSW;
+
+    const pVal = 1 - fcdf(F, dfb, dfw);
+
+    return {F, pVal};
+}
 
 /* --- RNG --- */
 function randomUniform(min = 0, max = 1){
@@ -1180,8 +1268,6 @@ function pochhammer(x, n){
 }
 
 
-
-
 module.exports = {
     min,
     max,
@@ -1227,6 +1313,8 @@ module.exports = {
     chiSquareTest,
     chiSquareGOF,
     linRegTTest,
+    twoSampleFTest,
+    ANOVA,
     randomUniform,
     randomNormal,
     randomBinomial,

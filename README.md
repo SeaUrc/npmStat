@@ -1,7 +1,8 @@
 # Statlib
 
 ## Description
-W.I.P. Aimed to handle statistics found at a college introductory level
+W.I.P.
+Zero dependency package aimed to handle statistics found at a college introductory level.<br>
 It can compute the following
 
 ### Descriptive statistics

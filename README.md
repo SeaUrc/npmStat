@@ -1,7 +1,8 @@
 # Statlib
 
 ## Description
-WIP. A statistics library that can compute the following
+W.I.P. Aimed to handle statistics found at a college introductory level
+It can compute the following
 
 ### Descriptive statistics
  - min
@@ -26,9 +27,18 @@ WIP. A statistics library that can compute the following
 
 ### Correlation and Regression
  - pearson correlation
+ - W.I.P.
 
 ### Hypothesis Testing
  - z test
+ - 2 sample z test
+ - 1 proportion z test
+ - 2 proportion z test
+ - t test
+ - 2 sample t test
+ - χ2 test
+ - χ2 goodness of fit
+ - W.I.P.
 
 ### Basic Matrix Operation
  - matrix multiplication

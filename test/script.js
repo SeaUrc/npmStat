@@ -1,4 +1,4 @@
-const {chiSquareTest} = require('statlib')
+const {chiSquareGOF} = require('statlib')
 // let x = [], y=[];
 // for (let i = 0; i<10; i++){
 //     x.push(Math.random() * 10);
@@ -6,7 +6,6 @@ const {chiSquareTest} = require('statlib')
 // }
 // console.log(geocdf(0.453, 3));
 
-let test = [[2, 2, 1],[2, 1, 2], [1, 1, 2]];
-let test2 = [[4, 3, 0], [0, 3, 4], [0, 1, 0]];
-
-console.log(chiSquareTest(test));
+let test = [1, 2, 3, 4, 5, 6];
+let test2 = [1, 3, 2, 5, 4, 6];
+console.log(chiSquareGOF(test, test2));

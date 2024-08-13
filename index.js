@@ -839,11 +839,9 @@ function twoSampleTTest(...args){
 
 /*
 * args
-* chiSquareTest(observer)
-* returns chi square statistics and p value
+* chiSquareTest(observed)
+* returns expected, chi square statistics, p value
 * */
-
-// BUGGY
 function chiSquareTest(A){
     if (!A.length || !A[0].length){
         throw new Error("size of A must be greater than 1");
@@ -862,27 +860,52 @@ function chiSquareTest(A){
             grandTot += A[i][j];
         }
     }
-
     const B = Array.from({length: numRows}, () => Array(numCols).fill(0));
     for (let i=0; i<numRows; i++){
         for (let j=0; j<numCols; j++){
             B[i][j] = (rowTot[i] * colTot[j]) / grandTot;
         }
     }
-    console.log(B);
 
     let chiSquare = 0;
     for (let i=0; i<numRows; i++){
         for (let j=0; j<numCols; j++){
-            chiSquare = ((A[i][j] - B[i][j])**2) / B[i][j];
+            chiSquare += ((A[i][j] - B[i][j])**2) / B[i][j];
         }
     }
 
     const df = (numRows-1) * (numCols-1);
 
     const pValue = 1-chicdf(chiSquare, df);
+    return {B, chiSquare, pValue};
+}
+
+/*
+* args
+* chiSquareGOF(observed, expected)
+* returns chi square statistics, p value
+* */
+function chiSquareGOF(A, B){
+    if (!A.length != !B.length){
+        throw new Error("lengths of observed and expected must be the same");
+    }
+    if (A.length == 0){
+        throw new Error("lengths of observed and expected must be greater than 0")
+    }
+
+    let N = A.length;
+    let chiSquare = 0;
+    for (let i=0; i<N; i++){
+        chiSquare += ((A[i] - B[i])**2) / B[i];
+    }
+
+    const df = N-1;
+
+    const pValue = 1 - chicdf(chiSquare, df);
     return {chiSquare, pValue};
 }
+
+// TODO Linreg T test, 2-sample F test, ANOVA
 
 /* --- RNG --- */
 function randomUniform(min = 0, max = 1){
@@ -1144,7 +1167,8 @@ module.exports = {
     twoProportionZTest,
     tTest,
     twoSampleTTest,
-    // chiSquareTest,
+    chiSquareTest,
+    chiSquareGOF,
     randomUniform,
     randomNormal,
     randomBinomial,

@@ -1,6 +1,6 @@
 const {min, max, range, quartile, median, Q1, Q3, IQR, hasOutliers, sum, sampleVariance, sampleStd, populationVariance,
     populationStd, coefficientOfVariation, skewness, uniform, uniformpdf, uniformcdf, invUniform, normalpdf, normalcdf,
-    invNorm, invErf
+    invNorm, invErf, binompdf, binomcdf
 } = require("../index");
 
 const accuracyDescriptive = 7;
@@ -126,7 +126,14 @@ describe('Probability Distributions', () => {
         expect(r).toBeCloseTo(47.98632016, accuracyProb);
     })
 
-    // test("binom pdf", () => {
-    // })
+    test("binomial pdf", () => {
+        expect(binompdf(3, .4, 2)).toBeCloseTo(.288, accuracyProb);
+        expect(binompdf(100, .423, 42)).toBeCloseTo(0.0804723057, accuracyProb);
+    })
+
+    test("binomial cdf", () => {
+        expect(binomcdf(3, .4, 2)).toBeCloseTo(.936, accuracyProb);
+        expect(binomcdf(100, .423, 39)).toBeCloseTo(0.2867591526, accuracyProb);
+    })
 })
 

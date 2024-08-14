@@ -255,6 +255,7 @@ function normalcdf(...args){
 * returns x such that the cumulative probability is equal to the given probability
 * */
 function invNorm(p, mu = 0, sigma = 1, tail = "left") {
+    // Beasley-Springer-Moro approximation
     if (p < 0 || p > 1) {
         throw new Error("Given probability must be in the range [0, 1]");
     }
@@ -373,11 +374,7 @@ function binomcdf(N, P, K){
     if (P > 1){
         throw new Error("Probability of success cannot be greater than 1");
     }
-    let cdf = 0;
-    for (let i =0; i<=K; i++){
-        cdf += binompdf(N, P, i);
-    }
-    return cdf;
+    return regularizedIncompleteBeta(1-P,N - Math.floor(K), 1 + Math.floor(K));
 }
 
 /*
@@ -1227,6 +1224,9 @@ function factorial(x) {
     if (!Number.isInteger(x)) {
         throw new Error("Non integer factorial. If this was intentional, use the gamma function")
     }
+    if (x === 0){
+        return 1;
+    }
     if (x === 1) {
         return 1;
     }
@@ -1237,6 +1237,7 @@ function choose(N, K){
     if (!Number.isInteger(N) || !Number.isInteger(K)){
         throw new Error("Non integer in combinatoric");
     }
+    console.log(`${N} choose ${K}`)
     return ((factorial(N)) / (factorial(K) * factorial(N-K)));
 }
 

@@ -1,4 +1,6 @@
-const {min, max, range, quartile, median, Q1, Q3, IQR, hasOutliers, sum, sampleVariance} = require("../index");
+const {min, max, range, quartile, median, Q1, Q3, IQR, hasOutliers, sum, sampleVariance, sampleStd, populationVariance,
+    populationStd, coefficientOfVariation, skewness
+} = require("../index");
 
 const accuracy = 5;
 
@@ -44,7 +46,7 @@ describe('Descriptive funcs', () => {
 
     test('hasOutliers()', () => {
         expect(hasOutliers([1, 2, 3, 4, 5, 6, 7, 8, 9])).toStrictEqual([[1, 2, 3, 4, 5, 6, 7, 8, 9], []]);
-        expect(hasOutliers([4, 5, 1, 3, 2, 3,5, 10, 100])).toStrictEqual([[4, 5, 1, 3, 2, 3,5], [10, 100]])
+        expect(hasOutliers([4, 5, 1, 3, 2, 3,5, 10, 100])).toStrictEqual([[4, 5, 1, 3, 2, 3,5], [10, 100]]);
     })
 
     test('sum', () => {
@@ -54,8 +56,29 @@ describe('Descriptive funcs', () => {
 
     test('sample variance', () => {
         expect(sampleVariance([1, 5, 3, 4, 6, 3])).toBeCloseTo(3.06666642, accuracy);
-        expect(sampleVariance([1.432, -1.532, 4.423, 1.534, 3.2423, -2.124, -1.324, 0.423])).toBeCloseTo(5.52248332, accuracy)
+        expect(sampleVariance([1.432, -1.532, 4.423, 1.534, 3.2423, -2.124, -1.324, 0.423])).toBeCloseTo(5.52248332, accuracy);
     })
 
-    // test('sample standard deviation', () => {})
+    test('population variance', () => {
+        expect(populationVariance([1.432, -1.532, 4.423, 1.534, 3.2423, -2.124, -1.324, 0.423])).toBeCloseTo(4.832172905, accuracy);
+        expect(populationVariance([1, 5, 6, 3, 7, 19])).toBeCloseTo(33.472222222, accuracy);
+    })
+
+    test('population standard deviation', () => {
+        expect(populationStd([1.432, -1.532, 4.423, 1.534, 3.2423, -2.124, -1.324, 0.423])).toBeCloseTo(2.198220395, accuracy);
+        expect(populationStd([1, 5, 6, 3, 7, 19])).toBeCloseTo(5.785518319, accuracy);
+    })
+
+    test('sample standard deviation', () => {
+        expect(sampleStd([1.432, -1.532, 4.423, 1.534, 3.2423, -2.124, -1.324, 0.423])).toBeCloseTo(2.349996451, accuracy);
+        expect(sampleStd([1, 5, 3, 4, 6, 3])).toBeCloseTo(1.75119, accuracy);
+    })
+
+    test('coefficient of variation', () => {
+        expect(coefficientOfVariation([1, 4, 3, 2, 1.2, 4.3, -1.3, 4, 2, 3, .24, 5.3, 4.2])).toBeCloseTo(0.717286725, accuracy);
+    })
+
+    test('skewness', () => {
+        expect(skewness([1, 2, 4.3, 6.2, 1.4, 3.4, 4.2, 1.342, 5.243, 5.1251, 1.1241, 5.123])).toBeCloseTo(-0.706358912, accuracy);
+    })
 })

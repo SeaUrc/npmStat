@@ -206,6 +206,18 @@ function uniformcdf(a, b, x){
     return (x-a)/(b-a);
 }
 
+/*
+* Args
+* invUniform(a, b, p)
+* returns the point x such that uniformcdf(a, b, x) = p
+* */
+function invUniform(a, b, p){
+    if (p < 0 || p > 1){
+        throw new Error("p not within interval (0, 1)");
+    }
+    return a + p*(b-a);
+}
+
 
 /*
 * Args
@@ -1212,54 +1224,35 @@ function upperIncompleteGamma(s, z, kLimit=50){
     return gamma(s) - lowerIncompleteGamma(s, z, kLimit);
 }
 
+// Abramowitz and Stegun approximation
 function erf(x) {
-    let z;
-    const ERF_A = 0.147;
-    let the_sign_of_x;
-    if (0 === x) {
-        the_sign_of_x = 0;
-        return 0;
-    } else if (x > 0) {
-        the_sign_of_x = 1;
-    } else {
-        the_sign_of_x = -1;
-    }
+    const a1 =  0.254829592;
+    const a2 = -0.284496736;
+    const a3 =  1.421413741;
+    const a4 = -1.453152027;
+    const a5 =  1.061405429;
+    const p =  0.3275911;
 
-    let one_plus_axsqrd = 1 + ERF_A * x * x;
-    let four_ovr_pi_etc = 4 / Math.PI + ERF_A * x * x;
-    let ratio = four_ovr_pi_etc / one_plus_axsqrd;
-    ratio *= x * -x;
-    let expofun = Math.exp(ratio);
-    let radical = Math.sqrt(1 - expofun);
-    z = radical * the_sign_of_x;
-    return z;
+    const sign = x < 0 ? -1 : 1;
+    x = Math.abs(x);
+
+    const t = 1.0 / (1.0 + p * x);
+    const y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.exp(-x * x);
+
+    return sign * y;
 }
 
-// https://stackoverflow.com/questions/12556685/is-there-a-javascript-implementation-of-the-inverse-error-function-akin-to-matl
-function invErf(x) {
-    let z;
-    let a = 0.147;
-    let the_sign_of_x;
-    if (0 === x) {
-        the_sign_of_x = 0;
-    } else if (x > 0) {
-        the_sign_of_x = 1;
-    } else {
-        the_sign_of_x = -1;
-    }
-
-    if (0 !== x) {
-        let ln_1minus_x_sqrd = Math.log(1 - x * x);
-        let ln_1minusxx_by_a = ln_1minus_x_sqrd / a;
-        let ln_1minusxx_by_2 = ln_1minus_x_sqrd / 2;
-        let ln_etc_by2_plus2 = ln_1minusxx_by_2 + (2 / (Math.PI * a));
-        let first_sqrt = Math.sqrt((ln_etc_by2_plus2 * ln_etc_by2_plus2) - ln_1minusxx_by_a);
-        let second_sqrt = Math.sqrt(first_sqrt - ln_etc_by2_plus2);
-        z = second_sqrt * the_sign_of_x;
-    } else { // x is zero
-        z = 0;
-    }
-    return z;
+// http://www.mimirgames.com/articles/programming/approximations-of-the-inverse-error-function/
+// using a taylor series approximation
+function invErf(s) {
+    const pi =Math.PI
+    const sqrt = (x) => Math.sqrt(x);
+    const first = sqrt(pi) * s / 2;
+    const second = 1/24 * (pi ** (3/2)) * (s**3);
+    const third = 7/960 * (pi ** (5/2)) * (s ** 5);
+    const fourth = 127/80640 * (pi ** (7/2)) * (s ** 7);
+    // const fifth = 4369
+    return first + second + third + fourth;
 }
 
 function beta(z1, z2){
@@ -1320,6 +1313,9 @@ module.exports = {
     populationStd,
     coefficientOfVariation,
     skewness,
+    uniformpdf,
+    uniformcdf,
+    invUniform,
     normalpdf,
     normalcdf,
     invNorm,

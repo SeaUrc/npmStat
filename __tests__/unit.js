@@ -106,25 +106,27 @@ describe('Probability Distributions', () => {
         expect(invUniform(2, 3, 1)).toBe(3);
     })
 
-    test("normal pdf", () => {
+    test("normal pdf", () => { // 7 decimal
         expect(normalpdf( 0, 0, 1)).toBeCloseTo(0.3989422804, accuracyProb);
         expect(normalpdf(3.23, 6, 9.26)).toBeCloseTo(0.0411972499, accuracyProb);
     })
 
-    test("normal cdf", () => { // accurate only to 4 decimals
+    test("normal cdf", () => {
         expect(normalcdf( 1, 0, 1)).toBeCloseTo(0.8413447404, accuracyProb);
         expect(normalcdf(1, 3, 0, 1)).toBeCloseTo(0.1573052923, accuracyProb);
         expect(normalcdf(-12.3, 313.5, 6.54, 100.32)).toBeCloseTo(0.5733754335, accuracyProb);
     })
 
-    test("inverse normal", () => { // accurate only to 4 decimals
-        // expect(invNorm( .95, 0, 1, 'lower')).toBeCloseTo(1.644853626, accuracyProb);
-        // expect(invNorm(.95, 1.43, 3.42, 'right')).toBeCloseTo(-4.195399401, accuracyProb);
-        //
-        // const [l, r] = invNorm(.532, 43.24, 6.54, 'center');
-        // expect(l).toBeCloseTo(38.49367984, accuracyProb);
-        // expect(r).toBeCloseTo(47.98632016, accuracyProb);
-        expect(invErf(0.95)).toBeCloseTo(1.38590)
+    test("inverse normal", () => {
+        expect(invNorm( .95, 0, 1, 'left')).toBeCloseTo(1.644853626, accuracyProb);
+        expect(invNorm(.95, 1.43, 3.42, 'right')).toBeCloseTo(-4.195399401, accuracyProb);
+
+        const [l, r] = invNorm(.532, 43.24, 6.54, 'center');
+        expect(l).toBeCloseTo(38.49367984, accuracyProb);
+        expect(r).toBeCloseTo(47.98632016, accuracyProb);
     })
+
+    // test("binom pdf", () => {
+    // })
 })
 

@@ -1245,14 +1245,25 @@ function erf(x) {
 // http://www.mimirgames.com/articles/programming/approximations-of-the-inverse-error-function/
 // using a taylor series approximation
 function invErf(s) {
-    const pi =Math.PI
-    const sqrt = (x) => Math.sqrt(x);
-    const first = sqrt(pi) * s / 2;
-    const second = 1/24 * (pi ** (3/2)) * (s**3);
-    const third = 7/960 * (pi ** (5/2)) * (s ** 5);
-    const fourth = 127/80640 * (pi ** (7/2)) * (s ** 7);
-    // const fifth = 4369
-    return first + second + third + fourth;
+    const x = 2*s / Math.sqrt(Math.PI);
+    const order = 500;
+    let cn = [1];
+    let sum = x;
+    for (let n=1; n<order; n++){
+        let cnsum = 0;
+        for (let k = 0; k<=n-1; k++){
+            cnsum += cn[k] * cn[n-1-k] / ((k+1) * (2*k + 1));
+        }
+        let cnVal = cnsum;
+        cn.push(cnVal);
+
+        sum += (cnVal / (2*n+1)) * (x ** (n*2 + 1));
+
+    }
+
+    console.log(cn);
+
+    return sum;
 }
 
 function beta(z1, z2){

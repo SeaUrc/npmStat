@@ -41,47 +41,43 @@ function quartile(a, percentile) {
     if (!a.length) {
         throw new Error("Array is empty");
     }
-    if (percentile < 0 || percentile > 100) {
+    if (percentile < 0 || percentile > 1) {
         throw new Error("Percentile out of bounds");
     }
 
-    a.sort((a, b) => a - b);
+    const aSorted = a.slice().sort((a, b) => a - b);
 
-    let N = a.length;
-    let rank = (percentile / 100) * (N); // 0 -> N
+    let N = aSorted.length;
+    let rank = (N - 1) * percentile;
 
-    if (rank < 1) {
-        return a[0];
+    const lower = Math.floor(rank);
+    const rem = rank - lower;
+
+    if (rem == 0){
+        return aSorted[lower];
     }
-    rank--;
-
-    let lowerIndex = Math.floor(rank);
-    let upperIndex = Math.ceil(rank);
-    let lowerValue = a[lowerIndex];
-    let upperValue = a[upperIndex];
-    let frac = rank - Math.floor(rank);
-    return lowerValue + (upperValue - lowerValue) * frac;
+    return aSorted[lower] + rem * (aSorted[lower+1] - aSorted[lower]);
 }
 
 function median(a) {
     if (!a.length) {
         throw new Error("Array is empty")
     }
-    return quartile(a, 50);
+    return quartile(a, .50);
 }
 
 function Q1(a) {
     if (!a.length) {
         throw new Error("Array is empty")
     }
-    return quartile(a, 25);
+    return quartile(a, .25);
 }
 
 function Q3(a) {
     if (!a.length) {
         throw new Error("Array is empty")
     }
-    return quartile(a, 75);
+    return quartile(a, .75);
 }
 
 function IQR(a) {
@@ -91,11 +87,11 @@ function IQR(a) {
     return Q3(a) - Q1(a);
 }
 
-function boxPlot(a, excludeOutliers = false) {
-    if (!excludeOutliers) {
-        return [min(a), Q1(a), median(a), Q3(a), max(a)]
+// thresholds by the Q1 - 1.5IQR, Q3 + 1.5IQR
+function hasOutliers(a){
+    if (!a.length){
+        throw new Error("array is empty!");
     }
-
     let threshold = [Q1(a) - 1.5 * IQR(a), Q3(a) + 1.5 * IQR(a)];
     let b = [];
     let outliers = []
@@ -106,7 +102,7 @@ function boxPlot(a, excludeOutliers = false) {
             outliers.push(value);
         }
     })
-    return [min(b), Q1(b), median(b), Q3(b), max(b), outliers];
+    return [b, outliers];
 }
 
 function sum(a) {
@@ -1315,7 +1311,7 @@ module.exports = {
     Q1,
     Q3,
     IQR,
-    boxPlot,
+    hasOutliers,
     sum,
     mean,
     sampleVariance,

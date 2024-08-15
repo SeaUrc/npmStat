@@ -1,6 +1,6 @@
 const {min, max, range, quartile, median, Q1, Q3, IQR, hasOutliers, sum, sampleVariance, sampleStd, populationVariance,
     populationStd, coefficientOfVariation, skewness, uniform, uniformpdf, uniformcdf, invUniform, normalpdf, normalcdf,
-    invNorm, invErf, binompdf, binomcdf
+    invNorm, invErf, binompdf, binomcdf, invBinom, tpdf, tcdf, invT
 } = require("../index");
 
 const accuracyDescriptive = 7;
@@ -134,6 +134,27 @@ describe('Probability Distributions', () => {
     test("binomial cdf", () => {
         expect(binomcdf(3, .4, 2)).toBeCloseTo(.936, accuracyProb);
         expect(binomcdf(100, .423, 39)).toBeCloseTo(0.2867591526, accuracyProb);
+    })
+
+    test('invBinom', () => {
+        expect(invBinom(.5, 20, .6)).toBe(12);
+        expect(invBinom(.6, 170, .423)).toBe(74);
+    })
+
+    test('tpdf', () => {
+        expect(tpdf(3, 3)).toBeCloseTo(.0229720373, accuracyProb);
+        expect(tpdf(2.123, 20.523)).toBeCloseTo(0.0465308675, accuracyProb);
+    })
+
+    test('tcdf', () => {
+        expect(tcdf(3, 3)).toBeCloseTo(0.9711655572, accuracyProb);
+        expect(tcdf(-1.23, 1.423, 4.23)).toBeCloseTo(.7466037916, accuracyProb);
+        expect(tcdf(-1, -.5, 23)).toBeCloseTo(0.1470547344, accuracyProb);
+    })
+
+    test('invT', () => { // accurate to 5
+        expect(invT(.513, 3)).toBeCloseTo(0.0353789245, 5);
+        expect(invT(.234, 63.423)).toBeCloseTo(-0.7301285197, 5);
     })
 })
 

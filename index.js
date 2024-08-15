@@ -386,6 +386,9 @@ function invBinom(probability, N, P) {
     if (!Number.isInteger(N)){
         throw new Error("N must be integers");
     }
+    if (N > 170){
+        throw new Error("N too high");
+    }
     if (P < 0){
         throw new Error("Cannot have a negative probabilty of success");
     }
@@ -400,7 +403,8 @@ function invBinom(probability, N, P) {
     }
     let cProb = 0;
     for (let K = 0; K <= N; K++) {
-        cProb += binompdf(N, P, k);
+        console.log(K, binompdf(N, P, K));
+        cProb += binompdf(N, P, K);
         if (cProb >= probability) {
             return K;
         }
@@ -461,14 +465,30 @@ function invT(p, df) {
 
     const q = invNorm(p);
     const q2 = q * q;
+    const q3 = q * q2;
+    const q4 = q2 * q2;
+    const q5 = q3 * q2;
+    const q6 = q3 * q3;
+    const q7 = q5 * q2;
+    const q8 = q4 * q4;
+    const q9 = q5 * q4;
+
     const a = (q2 + 1) / (4 * df);
     const b = ((5 * q2 + 16) * q2 + 3) / (96 * df * df);
     const c = (((3 * q2 + 19) * q2 + 17) * q2 - 15) / (384 * df * df * df);
     const d = ((((79 * q2 + 776) * q2 + 1482) * q2 - 1920) * q2 - 945) / (92160 * df * df * df * df);
+    const e = (((((27 * q2 + 339) * q2 + 930) * q2 - 1785) * q2 - 765) * q2 + 1701) / (368640 * df * df * df * df * df);
+    const f = (((((((444 * q2 + 8220) * q2 + 10675) * q2 - 16699) * q2 - 32328) * q2 + 10616) * q2 + 334305) * q2 + 40455) / (10117120 * df * df * df * df * df * df);
+    const g = ((((((((-7039 * q2 + 108285) * q2 + 310853) * q2 + 270650) * q2 - 468789) * q2 - 943035) * q2 + 185285) * q2 + 113165) * q2 + 91909) / (30105600 * df * df * df * df * df * df * df);
+    const h = (((((((((((125385 * q2 + 2760615) * q2 + 18441175) * q2 + 15817235) * q2 - 35111603) * q2 - 45438315) * q2 + 14744335) * q2 + 49651405) * q2 - 15886035) * q2 + 20479665) * q2 + 1007767) / (132710400 * df * df * df * df * df * df * df * df));
+    const i = (((((((((((-421663 * q2 + 10092330) * q2 + 62957385) * q2 + 168379960) * q2 + 20456351) * q2 - 250887169) * q2 - 210529723) * q2 + 182954229) * q2 + 106006292) * q2 + 57455870) * q2 + 2038705) / (678297600 * df * df * df * df * df * df * df * df * df));
+    const j = (((((((((((-1363430 * q2 + 30574500) * q2 + 162248910) * q2 + 330813780) * q2 + 47929268) * q2 - 681253720) * q2 - 299539594) * q2 + 519202354) * q2 + 385171956) * q2 + 154064648) * q2 + 4273375) / (2033918976 * df * df * df * df * df * df * df * df * df * df));
 
-    const quantile = q * (1 + a + b + c + d);
-    return quantile;
+    let t = q * (1 + a + b + c + d + e + f + g + h + i + j);
+
+    return t;
 }
+
 
 /*
 * Args
@@ -1136,7 +1156,6 @@ function zInterval(...args){
     
     const zCrit = invNorm(confidence, 0, 1, 'center')[1]; // only care abt positive z critical
     const moe = zCrit * (populationStdDev / Math.sqrt(N));
-    console.log(moe);
     return [sampleMean - moe, sampleMean + moe];
 }
 
@@ -1237,7 +1256,6 @@ function choose(N, K){
     if (!Number.isInteger(N) || !Number.isInteger(K)){
         throw new Error("Non integer in combinatoric");
     }
-    console.log(`${N} choose ${K}`)
     return ((factorial(N)) / (factorial(K) * factorial(N-K)));
 }
 
@@ -1321,7 +1339,7 @@ function recurseContinuedFractionIncompleteBeta(m, x, a, b, maxM){
 
 // https://dlmf.nist.gov/8.17#ii  8.17.22
 // https://www.jstor.org/stable/2235770
-function regularizedIncompleteBeta(x, a, b, maxIter=20){ // continued fraction approximation
+function regularizedIncompleteBeta(x, a, b, maxIter=50){ // continued fraction approximation
     let firstPart = (x**a)*((1-x)**b) / (a * beta(a, b));
     let contFrac = recurseContinuedFractionIncompleteBeta(0, x, a, b, maxIter);
     return firstPart*contFrac;

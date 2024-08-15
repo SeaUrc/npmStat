@@ -1136,6 +1136,7 @@ function ANOVA(samples){
 * args
 * Data: zInterval(population standard deviation, sample list, confidence level)
 * Stats: zInterval(population standard deviation, sample mean, sample size, confidence level)
+* returns an interval with specified confidence level
 * */
 function zInterval(...args){
     if (args.length !== 3 && args.length !== 4){
@@ -1159,6 +1160,72 @@ function zInterval(...args){
     return [sampleMean - moe, sampleMean + moe];
 }
 
+/*
+* args
+* Data: tInterval(sample list, confidence level)
+* Stats: tInterval(sample mean, sample standard deviation, sample size, confidence level)
+* returns an interval with specified confidence level
+* */
+function tInterval(...args){
+    if (args.length !== 2 && args.length !== 4){
+        throw new Error(`found ${args.length} args but only 2 or 4 are expected`)
+    }
+    let sampleMean, sampleStdDev, N, confidence;
+    if (args.length === 4){
+        sampleMean = args[0];
+        sampleStdDev = args[1];
+        N = args[2];
+        confidence = args[3];
+    }else{
+        sampleMean = mean(args[0]);
+        sampleStdDev = sampleStd(args[0]);
+        N = args[0].length;
+        confidence = args[1];
+    }
+
+    if (N < 2){
+        throw new Error("Sample size must be at least 2 for t-interval");
+    }
+
+    const df = N-1;
+    const tCrit = invT((1+confidence)/2, df);
+    const moe = tCrit * (sampleStdDev / Math.sqrt(N));
+    return [sampleMean - moe, sampleMean + moe];
+
+}
+
+function twoSampleZInterval(...args) {
+    if (args.length !== 5 && args.length !== 7) {
+        throw new Error(`Found ${args.length} args, but only 5 or 7 are expected.`);
+    }
+
+    let stdDev1, stdDev2, mean1, mean2, N1, N2, confidence;
+
+    if (args.length === 7) {
+        stdDev1 = args[0];
+        stdDev2 = args[1];
+        mean1 = args[2];
+        N1 = args[3];
+        mean2 = args[4];
+        N2 = args[5];
+        confidence = args[6];
+    } else {
+        stdDev1 = args[0];
+        stdDev2 = args[1];
+        mean1 = mean(args[2]);
+        mean2 = mean(args[3]);
+        N1 = args[2].length;
+        N2 = args[3].length;
+        confidence = args[4];
+    }
+
+    const zCrit = invNorm(confidence, 0, 1, 'center')[1]; // Get positive z value
+    const moe = zCrit * Math.sqrt(Math.pow(stdDev1, 2) / N1 + Math.pow(stdDev2, 2) / N2);
+
+    const diffMeans = mean1 - mean2;
+
+    return [diffMeans - moe, diffMeans + moe];
+}
 
 
 /* --- RNG --- */

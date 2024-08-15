@@ -1,6 +1,7 @@
 const {min, max, range, quartile, median, Q1, Q3, IQR, hasOutliers, sum, sampleVariance, sampleStd, populationVariance,
     populationStd, coefficientOfVariation, skewness, uniform, uniformpdf, uniformcdf, invUniform, normalpdf, normalcdf,
-    invNorm, invErf, binompdf, binomcdf, invBinom, tpdf, tcdf, invT, zInterval, tInterval, twoSampleZInterval
+    invNorm, invErf, binompdf, binomcdf, invBinom, tpdf, tcdf, invT, zInterval, tInterval, twoSampleZInterval,
+    twoSampleTInterval
 } = require("../index");
 
 const accuracyDescriptive = 7;
@@ -180,7 +181,15 @@ describe('Confidence Intervals', () => {
     })
 
     test('twoSampleZInterval', () => {
-        let [twoSamZLower, twoSamZUpper] = twoSampleZInterval(1,3, 2, 4, 4, 2, 0.90);
+        let [twoSamZLower, twoSamZUpper] = twoSampleZInterval(1,3, 2, 4, 4, 2, 0.95);
+        expect(twoSamZLower).toBeCloseTo(-6.272, 3);
+        expect(twoSamZUpper).toBeCloseTo(2.2716, 3);
+    })
+
+    test('twoSampleTInterval', () => {
+        let [lower, upper] = twoSampleTInterval(2, 2, 4, 4, 3, 2, 0.90, true);
+        expect(lower).toBeCloseTo(-10.87, 3);
+        expect(upper).toBeCloseTo(6.8704, 3);
     })
 })
 

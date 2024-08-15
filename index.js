@@ -1165,7 +1165,7 @@ function zInterval(...args){
 * args
 * Data: tInterval(sample list, confidence level)
 * Stats: tInterval(sample mean, sample standard deviation, sample size, confidence level)
-* returns an interval with specified confidence level
+* returns confidence interval [lower, upper]
 * */
 function tInterval(...args){
     if (args.length !== 2 && args.length !== 4){
@@ -1195,6 +1195,12 @@ function tInterval(...args){
 
 }
 
+/*
+* args
+* Data: twoSampleZInterval(population std. deviation 1, population std. deviation 2, sample 1, sample 2, confidence)
+* Stats: twoSampleZInterval(population std. deviation 1, population std. deviation 2, mean 1, sample size 1, mean 2, sample size 2, confidence)
+* returns confidence interval [lower, upper]
+* */
 function twoSampleZInterval(...args) {
     if (args.length !== 5 && args.length !== 7) {
         throw new Error(`Found ${args.length} args, but only 5 or 7 are expected.`);
@@ -1228,6 +1234,58 @@ function twoSampleZInterval(...args) {
     return [diffMeans - moe, diffMeans + moe];
 }
 
+/*
+* args
+* Data: twoSampleTInterval(sample 1, sample 2, confidence, pooled)
+* Stats: twoSampleTInterval(mean 1, sample std. deviation 1, sample size 1, mean 2, sample std. deviation 2, sample size 2, confidence, pooled)
+* returns confidence interval [lower, upper]
+* */
+function twoSampleTInterval(...args) {
+    if (args.length !== 4 && args.length !== 8) {
+        throw new Error(`Found ${args.length} args, but only 4 or 8 are expected.`);
+    }
+
+    let stdDev1, stdDev2, mean1, mean2, N1, N2, confidence, pooled;
+
+    if (args.length === 8) {
+        mean1 = args[0];
+        mean2 = args[3];
+        stdDev1 = args[1];
+        stdDev2 = args[4];
+        N1 = args[2];
+        N2 = args[5];
+        confidence = args[6];
+        pooled = args[7];
+    } else {
+        let s1 = args[0];
+        let s2 = args[1];
+        stdDev1 = sampleStd(s1);
+        stdDev2 = sampleStd(s2);
+        mean1 = mean(s1);
+        mean2 = mean(s2);
+        N1 = s1.length;
+        N2 = s2.length;
+        confidence = args[2];
+        pooled = args[3];
+    }
+
+    let df, stdErr;
+
+    if (pooled) {
+        const sp = Math.sqrt(((N1 - 1) * stdDev1**2 + (N2 - 1) * stdDev2 ** 2) / (N1 + N2 - 2));
+        stdErr = sp * Math.sqrt(1 / N1 + 1 / N2);
+        df = N1 + N2 - 2;
+    } else {
+        stdErr = Math.sqrt(stdDev1**2 / N1 + stdDev2 ** 2 / N2);
+        df = stdErr ** 4 / (((stdDev1 **4) / (N1**2) * (N1 - 1))) + ((stdDev2**4) / ((N2**2) * (N2 - 1)));
+    }
+
+    const tCrit = invT((1 + confidence) / 2, df);
+    const moe = tCrit * stdErr;
+    const diffMeans = mean1 - mean2;
+
+    return [diffMeans - moe, diffMeans + moe];
+}
 
 /* --- RNG --- */
 function randomUniform(min = 0, max = 1){
@@ -1539,6 +1597,7 @@ module.exports = {
     zInterval,
     tInterval,
     twoSampleZInterval,
+    twoSampleTInterval,
     randomUniform,
     randomNormal,
     randomBinomial,

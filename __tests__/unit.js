@@ -1,6 +1,6 @@
 const {min, max, range, quartile, median, Q1, Q3, IQR, hasOutliers, sum, sampleVariance, sampleStd, populationVariance,
     populationStd, coefficientOfVariation, skewness, uniform, uniformpdf, uniformcdf, invUniform, normalpdf, normalcdf,
-    invNorm, invErf, binompdf, binomcdf, invBinom, tpdf, tcdf, invT
+    invNorm, invErf, binompdf, binomcdf, invBinom, tpdf, tcdf, invT, zInterval, tInterval, twoSampleZInterval
 } = require("../index");
 
 const accuracyDescriptive = 7;
@@ -155,6 +155,32 @@ describe('Probability Distributions', () => {
     test('invT', () => { // accurate to 5
         expect(invT(.513, 3)).toBeCloseTo(0.0353789245, 5);
         expect(invT(.234, 63.423)).toBeCloseTo(-0.7301285197, 5);
+    })
+})
+
+
+const intervalAcc = 5;
+
+describe('Confidence Intervals', () => {
+    test('zInterval', () => {
+        let [zIntervalLower, zIntervalUpper] = zInterval(3, 6.833333333, 6, 0.95);
+        expect(zIntervalLower).toBeCloseTo(4.4328774, intervalAcc);
+        expect(zIntervalUpper).toBeCloseTo(9.2337891, intervalAcc);
+
+        let zInterSample = [1.432, -1.532, 4.423, 1.534, 3.2423, -2.124, -1.324, 0.423];
+        let [zIntervalLower2, zIntervalUpper2] = zInterval(2, zInterSample, 0.95);
+        expect(zIntervalLower2).toBeCloseTo(-0.626616, intervalAcc);
+        expect(zIntervalUpper2).toBeCloseTo(2.1451913, intervalAcc);
+    })
+
+    test('tInterval', () => { // pretty bad, higher confidence interval becomes much more inaccurate
+        let [tIntLower, tIntUpper] = tInterval(0.7592875, 2.349996450, 8, 0.90);
+        expect(tIntLower).toBeCloseTo(-0.8148, 3);
+        expect(tIntUpper).toBeCloseTo(2.3334, 3);
+    })
+
+    test('twoSampleZInterval', () => {
+        let [twoSamZLower, twoSamZUpper] = twoSampleZInterval(1,3, 2, 4, 4, 2, 0.90);
     })
 })
 

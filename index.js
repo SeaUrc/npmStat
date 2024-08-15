@@ -458,6 +458,7 @@ function tcdf(...args){
 * invT(probability, degrees of freedom)
 * returns the point x at which the cumulative probability is equal to that given from a t-distribution with given degrees of freedom
 * */
+
 function invT(p, df) {
     if (p <= 0.0 || p >= 1.0) {
         throw new Error("p must be between 0 and 1");
@@ -1412,6 +1413,71 @@ function regularizedIncompleteBeta(x, a, b, maxIter=50){ // continued fraction a
     return firstPart*contFrac;
 }
 
+function gammaln(x){
+    var j = 0;
+    var cof = [
+        76.18009172947146, -86.50532032941677, 24.01409824083091,
+        -1.231739572450155, 0.1208650973866179e-2, -0.5395239384953e-5
+    ];
+    var ser = 1.000000000190015;
+    var xx, y, tmp;
+    tmp = (y = xx = x) + 5.5;
+    tmp -= (xx + 0.5) * Math.log(tmp);
+    for (; j < 6; j++)
+        ser += cof[j] / ++y;
+    return Math.log(2.5066282746310005 * ser / xx) - tmp;
+}
+
+function regularizedIncompleteBetaInverse(p, a, b) {
+    let EPS = 1e-8;
+    let a1 = a - 1;
+    let b1 = b - 1;
+    let j = 0;
+    let lna, lnb, pp, t, u, err, x, al, h, w, afac;
+    if (p <= 0)
+        return 0;
+    if (p >= 1)
+        return 1;
+    if (a >= 1 && b >= 1) {
+        pp = (p < 0.5) ? p : 1 - p;
+        t = Math.sqrt(-2 * Math.log(pp));
+        x = (2.30753 + t * 0.27061) / (1 + t* (0.99229 + t * 0.04481)) - t;
+        if (p < 0.5)
+            x = -x;
+        al = (x * x - 3) / 6;
+        h = 2 / (1 / (2 * a - 1)  + 1 / (2 * b - 1));
+        w = (x * Math.sqrt(al + h) / h) - (1 / (2 * b - 1) - 1 / (2 * a - 1)) *
+            (al + 5 / 6 - 2 / (3 * h));
+        x = a / (a + b * Math.exp(2 * w));
+    } else {
+        lna = Math.log(a / (a + b));
+        lnb = Math.log(b / (a + b));
+        t = Math.exp(a * lna) / a;
+        u = Math.exp(b * lnb) / b;
+        w = t + u;
+        if (p < t / w)
+            x = Math.pow(a * w * p, 1 / a);
+        else
+            x = 1 - Math.pow(b * w * (1 - p), 1 / b);
+    }
+    afac = -gammaln(a) - gammaln(b) + gammaln(a + b);
+    for(; j < 10; j++) {
+        if (x === 0 || x === 1)
+            return x;
+        err = regularizedIncompleteBeta(x, a, b) - p;
+        t = Math.exp(a1 * Math.log(x) + b1 * Math.log(1 - x) + afac);
+        u = err / t;
+        x -= (t = u / (1 - 0.5 * Math.min(1, u * (a1 / x - b1 / (1 - x)))));
+        if (x <= 0)
+            x = 0.5 * (x + t);
+        if (x >= 1)
+            x = 0.5 * (x + t + 1);
+        if (Math.abs(t) < EPS * x && j > 0)
+            break;
+    }
+    return x;
+};
+
 function pochhammer(x, n){
     let res = 1;
     for (let i = x; i<=(x+n-1); i++){
@@ -1419,7 +1485,6 @@ function pochhammer(x, n){
     }
     return res;
 }
-
 
 module.exports = {
     min,
@@ -1472,6 +1537,8 @@ module.exports = {
     twoSampleFTest,
     ANOVA,
     zInterval,
+    tInterval,
+    twoSampleZInterval,
     randomUniform,
     randomNormal,
     randomBinomial,

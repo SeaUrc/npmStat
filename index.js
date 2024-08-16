@@ -403,7 +403,6 @@ function invBinom(probability, N, P) {
     }
     let cProb = 0;
     for (let K = 0; K <= N; K++) {
-        console.log(K, binompdf(N, P, K));
         cProb += binompdf(N, P, K);
         if (cProb >= probability) {
             return K;
@@ -1241,6 +1240,7 @@ function twoSampleZInterval(...args) {
 * returns confidence interval [lower, upper]
 * */
 function twoSampleTInterval(...args) {
+    throw new Error("NOT WORKING RN");
     if (args.length !== 4 && args.length !== 8) {
         throw new Error(`Found ${args.length} args, but only 4 or 8 are expected.`);
     }
@@ -1285,6 +1285,76 @@ function twoSampleTInterval(...args) {
     const diffMeans = mean1 - mean2;
 
     return [diffMeans - moe, diffMeans + moe];
+}
+
+/*
+* args
+* onePropZInterval(successes, sample size, confidence level)
+* returns confidence interval [lower, upper]
+* */
+function onePropZInterval(x, n, c){
+    if (x < 0){
+        throw new Error("# of successes must be non-negative");
+    }
+    if (c < 0 || c > 1){
+        throw new Error("confidence must be between 0 and 1");
+    }
+    const phat = x/n;
+    const zCrit = invNorm(c, 0, 1, 'center')[1];
+    const moe = zCrit * Math.sqrt((phat * (1-phat))/n);
+    return [phat-moe, phat+moe];
+}
+
+/*
+* args
+* twoPropZInterval(successes 1, sample size 1, successes 2, sample size 2, confidence level)
+* returns confidence interval [lower, upper]
+* */
+function twoPropZInterval(x1, n1, x2, n2, c){
+    if (x1 < 0 || x2 < 0){
+        throw new Error("# of successes must be non-negative");
+    }
+    if (c < 0 || c > 1){
+        throw new Error("confidence must be between 0 and 1");
+    }
+    const phat1 = x1/n1;
+    const phat2 = x2/n2;
+    const zCrit = invNorm(c, 0, 1, 'center')[1];
+
+    const stdErr = Math.sqrt( (phat1 * (1-phat1) / n1) + (phat2 * (1-phat2) / n2));
+    const moe = zCrit * stdErr;
+    const diff = phat1 - phat2;
+    return [diff - moe, diff+moe];
+}
+
+function linRegTInterval(x, y, confidence) {
+    if (x.length !== y.length) {
+        throw new Error('lengths of x and y must be equal.');
+    }
+
+    const n = x.length;
+
+    const meanX = mean(x);
+    const meanY = mean(y);
+
+    const numerator = x.reduce((sum, xi, i) => sum + (xi - meanX) * (y[i] - meanY), 0);
+    const denominator = x.reduce((sum, xi) => sum + Math.pow(xi - meanX, 2), 0);
+    const beta1 = numerator / denominator;
+    const beta0 = meanY - beta1 * meanX;
+
+    const residuals = y.map((yi, i) => yi - (beta0 + beta1 * x[i]));
+
+    const residualSumOfSquares = residuals.reduce((sum, res) => sum + Math.pow(res, 2), 0);
+    const se = Math.sqrt(residualSumOfSquares / (n - 2));
+
+    const seBeta1 = se / Math.sqrt(denominator);
+
+    const df = n - 2;
+    const tCrit = invT( (1+confidence)/2, df);
+
+    const moe = tCrit * seBeta1;
+
+    return [beta1-moe, beta1+moe];
 }
 
 /* --- RNG --- */
@@ -1597,7 +1667,10 @@ module.exports = {
     zInterval,
     tInterval,
     twoSampleZInterval,
-    twoSampleTInterval,
+    // twoSampleTInterval,
+    onePropZInterval,
+    twoPropZInterval,
+    // linRegTInterval,
     randomUniform,
     randomNormal,
     randomBinomial,

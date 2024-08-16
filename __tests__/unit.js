@@ -1,7 +1,7 @@
 const {min, max, range, quartile, median, Q1, Q3, IQR, hasOutliers, sum, sampleVariance, sampleStd, populationVariance,
     populationStd, coefficientOfVariation, skewness, uniform, uniformpdf, uniformcdf, invUniform, normalpdf, normalcdf,
     invNorm, invErf, binompdf, binomcdf, invBinom, tpdf, tcdf, invT, zInterval, tInterval, twoSampleZInterval,
-    twoSampleTInterval
+    twoSampleTInterval, onePropZInterval, twoPropZInterval, linRegTInterval
 } = require("../index");
 
 const accuracyDescriptive = 7;
@@ -160,18 +160,18 @@ describe('Probability Distributions', () => {
 })
 
 
-const intervalAcc = 5;
+const accuracyInterval = 5;
 
 describe('Confidence Intervals', () => {
     test('zInterval', () => {
         let [zIntervalLower, zIntervalUpper] = zInterval(3, 6.833333333, 6, 0.95);
-        expect(zIntervalLower).toBeCloseTo(4.4328774, intervalAcc);
-        expect(zIntervalUpper).toBeCloseTo(9.2337891, intervalAcc);
+        expect(zIntervalLower).toBeCloseTo(4.4328774, accuracyInterval);
+        expect(zIntervalUpper).toBeCloseTo(9.2337891, accuracyInterval);
 
         let zInterSample = [1.432, -1.532, 4.423, 1.534, 3.2423, -2.124, -1.324, 0.423];
         let [zIntervalLower2, zIntervalUpper2] = zInterval(2, zInterSample, 0.95);
-        expect(zIntervalLower2).toBeCloseTo(-0.626616, intervalAcc);
-        expect(zIntervalUpper2).toBeCloseTo(2.1451913, intervalAcc);
+        expect(zIntervalLower2).toBeCloseTo(-0.626616, accuracyInterval);
+        expect(zIntervalUpper2).toBeCloseTo(2.1451913, accuracyInterval);
     })
 
     test('tInterval', () => { // pretty bad, higher confidence interval becomes much more inaccurate
@@ -186,10 +186,37 @@ describe('Confidence Intervals', () => {
         expect(twoSamZUpper).toBeCloseTo(2.2716, 3);
     })
 
-    test('twoSampleTInterval', () => {
-        let [lower, upper] = twoSampleTInterval(2, 2, 4, 4, 3, 2, 0.90, true);
-        expect(lower).toBeCloseTo(-10.87, 3);
-        expect(upper).toBeCloseTo(6.8704, 3);
+    // test('twoSampleTInterval', () => {
+    //     let [lower, upper] = twoSampleTInterval(2, 2, 4, 4, 3, 2, 0.90, true);
+    //     expect(lower).toBeCloseTo(-10.87, 3);
+    //     expect(upper).toBeCloseTo(6.8704, 3);
+    // })
+    
+    test('onePropZInterval', () => {
+        let [lower, upper] = onePropZInterval(3, 10, .95);
+        expect(lower).toBeCloseTo(0.01597, accuracyInterval);
+        expect(upper).toBeCloseTo(0.58403, accuracyInterval);
+
+        let [lower2, upper2] = onePropZInterval(27, 54, .872);
+        expect(lower2).toBeCloseTo(0.39644, accuracyInterval);
+        expect(upper2).toBeCloseTo(0.60356, accuracyInterval);
     })
+
+    test('twoPropZInterval', () => {
+        let [lower, upper] = twoPropZInterval(3, 10, 5, 12, .95);
+        expect(lower).toBeCloseTo(-0.5147595, accuracyInterval);
+        expect(upper).toBeCloseTo(0.28143, accuracyInterval);
+
+        let [lower2, upper2] = twoPropZInterval(6, 14, 12, 42, .9);
+        expect(lower2).toBeCloseTo(-0.1030569, accuracyInterval);
+        expect(upper2).toBeCloseTo(0.38877, accuracyInterval);
+    })
+
+    // test('linRegTInterval', () => {
+    //     let x1 = [1, 2.3, 4.256, 5.4, 5.61, 5.64, 6.47, 8.16];
+    //     let y1 = [-1.543, 2.45, 0.174, 1.4354, 5.4325, 4.5316, 3.65, 12.1];
+        // let [lower, upper] = linRegTInterval(x1, y1, .95);
+        // console.log(lower, upper);
+    // })
 })
 

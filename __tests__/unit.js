@@ -154,8 +154,8 @@ describe('Probability Distributions', () => {
     })
 
     test('invT', () => { // accurate to 5
-        expect(invT(.513, 3)).toBeCloseTo(0.0353789245, 5);
-        expect(invT(.234, 63.423)).toBeCloseTo(-0.7301285197, 5);
+        expect(invT(.513, 3)).toBeCloseTo(0.0353789245, accuracyProb);
+        expect(invT(.234, 63.423)).toBeCloseTo(-0.7301285197, accuracyProb);
     })
 })
 
@@ -176,21 +176,24 @@ describe('Confidence Intervals', () => {
 
     test('tInterval', () => { // pretty bad, higher confidence interval becomes much more inaccurate
         let [tIntLower, tIntUpper] = tInterval(0.7592875, 2.349996450, 8, 0.90);
-        expect(tIntLower).toBeCloseTo(-0.8148, 3);
-        expect(tIntUpper).toBeCloseTo(2.3334, 3);
+        expect(tIntLower).toBeCloseTo(-0.8148216, accuracyInterval);
+        expect(tIntUpper).toBeCloseTo(2.3334, accuracyInterval);
     })
 
     test('twoSampleZInterval', () => {
         let [twoSamZLower, twoSamZUpper] = twoSampleZInterval(1,3, 2, 4, 4, 2, 0.95);
-        expect(twoSamZLower).toBeCloseTo(-6.272, 3);
-        expect(twoSamZUpper).toBeCloseTo(2.2716, 3);
+        expect(twoSamZLower).toBeCloseTo(-6.271642, accuracyInterval);
+        expect(twoSamZUpper).toBeCloseTo(2.271642, accuracyInterval);
     })
 
-    // test('twoSampleTInterval', () => {
-    //     let [lower, upper] = twoSampleTInterval(2, 2, 4, 4, 3, 2, 0.90, true);
-    //     expect(lower).toBeCloseTo(-10.87, 3);
-    //     expect(upper).toBeCloseTo(6.8704, 3);
-    // })
+    test('twoSampleTInterval', () => {
+        let [lower, upper] = twoSampleTInterval(2, 3, 14, 5, 4, 7, 0.95, false);
+        expect(lower).toBeCloseTo(-6.84025, accuracyInterval);
+        expect(upper).toBeCloseTo(0.84025, accuracyInterval);
+        let [lower2, upper2] = twoSampleTInterval(2, 3, 14, 5, 4, 7, 0.95, true);
+        expect(lower2).toBeCloseTo(-6.244022, accuracyInterval);
+        expect(upper2).toBeCloseTo(0.24402, accuracyInterval);
+    })
     
     test('onePropZInterval', () => {
         let [lower, upper] = onePropZInterval(3, 10, .95);
@@ -212,11 +215,13 @@ describe('Confidence Intervals', () => {
         expect(upper2).toBeCloseTo(0.38877, accuracyInterval);
     })
 
-    // test('linRegTInterval', () => {
-    //     let x1 = [1, 2.3, 4.256, 5.4, 5.61, 5.64, 6.47, 8.16];
-    //     let y1 = [-1.543, 2.45, 0.174, 1.4354, 5.4325, 4.5316, 3.65, 12.1];
-        // let [lower, upper] = linRegTInterval(x1, y1, .95);
-        // console.log(lower, upper);
-    // })
+    test('linRegTInterval', () => {
+        let x1 = [1, 2.3, 4.256, 5.4, 5.61, 5.64, 6.47, 8.16];
+        let y1 = [-1.543, 2.45, 0.174, 1.4354, 5.4325, 4.5316, 3.65, 12.1];
+        let [b1low, b1up, b2low, b2up] = linRegTInterval(x1, y1, .95);
+
+        expect(b1low).toBeCloseTo(0.2223655, accuracyInterval);
+        expect(b1up).toBeCloseTo( 2.372742, accuracyInterval);
+    })
 })
 

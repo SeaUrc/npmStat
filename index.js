@@ -459,34 +459,9 @@ function tcdf(...args){
 * */
 
 function invT(p, df) {
-    if (p <= 0.0 || p >= 1.0) {
-        throw new Error("p must be between 0 and 1");
-    }
-
-    const q = invNorm(p);
-    const q2 = q * q;
-    const q3 = q * q2;
-    const q4 = q2 * q2;
-    const q5 = q3 * q2;
-    const q6 = q3 * q3;
-    const q7 = q5 * q2;
-    const q8 = q4 * q4;
-    const q9 = q5 * q4;
-
-    const a = (q2 + 1) / (4 * df);
-    const b = ((5 * q2 + 16) * q2 + 3) / (96 * df * df);
-    const c = (((3 * q2 + 19) * q2 + 17) * q2 - 15) / (384 * df * df * df);
-    const d = ((((79 * q2 + 776) * q2 + 1482) * q2 - 1920) * q2 - 945) / (92160 * df * df * df * df);
-    const e = (((((27 * q2 + 339) * q2 + 930) * q2 - 1785) * q2 - 765) * q2 + 1701) / (368640 * df * df * df * df * df);
-    const f = (((((((444 * q2 + 8220) * q2 + 10675) * q2 - 16699) * q2 - 32328) * q2 + 10616) * q2 + 334305) * q2 + 40455) / (10117120 * df * df * df * df * df * df);
-    const g = ((((((((-7039 * q2 + 108285) * q2 + 310853) * q2 + 270650) * q2 - 468789) * q2 - 943035) * q2 + 185285) * q2 + 113165) * q2 + 91909) / (30105600 * df * df * df * df * df * df * df);
-    const h = (((((((((((125385 * q2 + 2760615) * q2 + 18441175) * q2 + 15817235) * q2 - 35111603) * q2 - 45438315) * q2 + 14744335) * q2 + 49651405) * q2 - 15886035) * q2 + 20479665) * q2 + 1007767) / (132710400 * df * df * df * df * df * df * df * df));
-    const i = (((((((((((-421663 * q2 + 10092330) * q2 + 62957385) * q2 + 168379960) * q2 + 20456351) * q2 - 250887169) * q2 - 210529723) * q2 + 182954229) * q2 + 106006292) * q2 + 57455870) * q2 + 2038705) / (678297600 * df * df * df * df * df * df * df * df * df));
-    const j = (((((((((((-1363430 * q2 + 30574500) * q2 + 162248910) * q2 + 330813780) * q2 + 47929268) * q2 - 681253720) * q2 - 299539594) * q2 + 519202354) * q2 + 385171956) * q2 + 154064648) * q2 + 4273375) / (2033918976 * df * df * df * df * df * df * df * df * df * df));
-
-    let t = q * (1 + a + b + c + d + e + f + g + h + i + j);
-
-    return t;
+    let x = incompleteBetaInverse(2 * Math.min(p, 1-p), df/2, 1/2);
+    x = Math.sqrt(df * (1-x)/x);
+    return (p > 0.5) ? x : -x;
 }
 
 
@@ -655,6 +630,37 @@ function pearsonCorrelation(x, y) {
     }
     let d = Math.sqrt(d1 * d2);
     return num / d;
+}
+
+/*
+* args
+* linearRegression(x, y)
+* returns {slope, intercept}
+* */
+function linearRegression(x, y) {
+    if (x.length !== y.length) {
+        throw new Error("The lists x and y must have the same length.");
+    }
+
+    const n = x.length;
+
+    // Calculate the means of x and y
+    const meanX = x.reduce((sum, value) => sum + value, 0) / n;
+    const meanY = y.reduce((sum, value) => sum + value, 0) / n;
+
+    // Calculate the slope (m) and intercept (b)
+    let numerator = 0;
+    let denominator = 0;
+
+    for (let i = 0; i < n; i++) {
+        numerator += (x[i] - meanX) * (y[i] - meanY);
+        denominator += (x[i] - meanX) ** 2;
+    }
+
+    const m = numerator / denominator;
+    const b = meanY - m * meanX;
+
+    return { slope: m, intercept: b };
 }
 
 /* --- Hypothesis Testing --- */
@@ -1240,7 +1246,6 @@ function twoSampleZInterval(...args) {
 * returns confidence interval [lower, upper]
 * */
 function twoSampleTInterval(...args) {
-    throw new Error("NOT WORKING RN");
     if (args.length !== 4 && args.length !== 8) {
         throw new Error(`Found ${args.length} args, but only 4 or 8 are expected.`);
     }
@@ -1272,12 +1277,14 @@ function twoSampleTInterval(...args) {
     let df, stdErr;
 
     if (pooled) {
-        const sp = Math.sqrt(((N1 - 1) * stdDev1**2 + (N2 - 1) * stdDev2 ** 2) / (N1 + N2 - 2));
+        const spnum = (N1 - 1) * (stdDev1 ** 2) + (N2-1) * (stdDev2 ** 2);
+        const sp = Math.sqrt(spnum / (N1+N2-2));
         stdErr = sp * Math.sqrt(1 / N1 + 1 / N2);
         df = N1 + N2 - 2;
     } else {
-        stdErr = Math.sqrt(stdDev1**2 / N1 + stdDev2 ** 2 / N2);
-        df = stdErr ** 4 / (((stdDev1 **4) / (N1**2) * (N1 - 1))) + ((stdDev2**4) / ((N2**2) * (N2 - 1)));
+        stdErr = Math.sqrt((stdDev1**2) / N1 + (stdDev2 ** 2) / N2);
+        // welch-satterthwaite
+        df = (((stdDev1**2 / N1  + stdDev2**2 / N2) ** 2) / ( 1/(N1-1)*((stdDev1**2/N1)**2) + 1/(N2-1)*((stdDev2**2/N2)**2) ));
     }
 
     const tCrit = invT((1 + confidence) / 2, df);
@@ -1333,28 +1340,60 @@ function linRegTInterval(x, y, confidence) {
     }
 
     const n = x.length;
+    const xMean = mean(x);
+    const yMean = mean(y);
 
-    const meanX = mean(x);
-    const meanY = mean(y);
+    // Calculate the slope (b1)
+    let xy = 0;
+    let xx = 0;
+    for (let i=0; i<n; i++){
+        xx += (x[i] - xMean)**2;
+        xy = (y[i] - yMean)*(x[i] - xMean);
+    }
 
-    const numerator = x.reduce((sum, xi, i) => sum + (xi - meanX) * (y[i] - meanY), 0);
-    const denominator = x.reduce((sum, xi) => sum + Math.pow(xi - meanX, 2), 0);
-    const beta1 = numerator / denominator;
-    const beta0 = meanY - beta1 * meanX;
+    const b1 = xx/xy;
+    const b0 = yMean - b1*xMean;
 
-    const residuals = y.map((yi, i) => yi - (beta0 + beta1 * x[i]));
+    console.log(b1, b0);
 
-    const residualSumOfSquares = residuals.reduce((sum, res) => sum + Math.pow(res, 2), 0);
-    const se = Math.sqrt(residualSumOfSquares / (n - 2));
+    // Calculate the predicted values (yHat)
+    const yHat = x.map(xi => b0 + b1 * xi);
 
-    const seBeta1 = se / Math.sqrt(denominator);
+    // console.log(yHat);
 
+    const idk = yHat.map((yi, i) => (y[i] - yi)**2);
+    // console.log(idk);
+    const MSE = sum(idk)/(n-2);
+    // console.log(MSE);
+
+    // let MSE = 0;
+    // for (let i=0; i<n; i++){
+    //     let res = y[i] - yHat;
+    //     console.log(res);
+    //     MSE += res**2;
+    //
+    // }
+    // MSE /= (n-2);
+
+
+
+    // Calculate the standard error of the slope (SE_b1)
+    const SEb1 = Math.sqrt(MSE / xx);
+    const SEb0= Math.sqrt(MSE * (1/n + (xMean**2) / xx));
+    // Degrees of freedom
     const df = n - 2;
-    const tCrit = invT( (1+confidence)/2, df);
 
-    const moe = tCrit * seBeta1;
+    // console.log(SEb1, SEb0);
 
-    return [beta1-moe, beta1+moe];
+    // Get the critical t-value
+    const tCrit = invT((1+confidence) / 2, df);
+
+    // Calculate the margin of error
+    const moeB1 = tCrit * SEb1;
+    const moeB0 = tCrit * SEb0;
+
+
+    return [b1-moeB1, b1+moeB1, b0-moeB0, b0+moeB0];
 }
 
 /* --- RNG --- */
@@ -1556,6 +1595,112 @@ function gammaln(x){
     return Math.log(2.5066282746310005 * ser / xx) - tmp;
 }
 
+function betaContinuedFrac(x, a, b){
+    let fpmin = 1e-30;
+    let m = 1;
+    let qab = a + b;
+    let qap = a + 1;
+    let qam = a - 1;
+    let c = 1;
+    let d = 1 - qab * x / qap;
+    let m2, aa, del, h;
+
+    if (Math.abs(d) < fpmin)
+        d = fpmin;
+    d = 1 / d;
+    h = d;
+
+    for (; m <= 100; m++) {
+        m2 = 2 * m;
+        aa = m * (b - m) * x / ((qam + m2) * (a + m2));
+        d = 1 + aa * d;
+        if (Math.abs(d) < fpmin)
+            d = fpmin;
+        c = 1 + aa / c;
+        if (Math.abs(c) < fpmin)
+            c = fpmin;
+        d = 1 / d;
+        h *= d * c;
+        aa = -(a + m) * (qab + m) * x / ((a + m2) * (qap + m2));
+        d = 1 + aa * d;
+        if (Math.abs(d) < fpmin)
+            d = fpmin;
+        c = 1 + aa / c;
+        if (Math.abs(c) < fpmin)
+            c = fpmin;
+        d = 1 / d;
+        del = d * c;
+        h *= del;
+        if (Math.abs(del - 1.0) < 3e-7)
+            break;
+    }
+
+    return h;
+}
+
+function incompleteBeta(x, a, b){
+    var bt = (x === 0 || x === 1) ?  0 :
+        Math.exp(gammaln(a + b) - gammaln(a) -
+            gammaln(b) + a * Math.log(x) + b *
+            Math.log(1 - x));
+    if (x < 0 || x > 1)
+        return false;
+    if (x < (a + 1) / (a + b + 2)){
+        return bt * betaContinuedFrac(x, a, b) / a;
+    }
+    return 1 - bt * betaContinuedFrac(1 - x, b, a) / b;
+}
+
+function incompleteBetaInverse(p, a, b){
+    let EPS = 1e-8;
+    let a1 = a - 1;
+    let b1 = b - 1;
+    let j = 0;
+    let lna, lnb, pp, t, u, err, x, al, h, w, afac;
+    if (p <= 0)
+        return 0;
+    if (p >= 1)
+        return 1;
+    if (a >= 1 && b >= 1) {
+        pp = (p < 0.5) ? p : 1 - p;
+        t = Math.sqrt(-2 * Math.log(pp));
+        x = (2.30753 + t * 0.27061) / (1 + t* (0.99229 + t * 0.04481)) - t;
+        if (p < 0.5)
+            x = -x;
+        al = (x * x - 3) / 6;
+        h = 2 / (1 / (2 * a - 1)  + 1 / (2 * b - 1));
+        w = (x * Math.sqrt(al + h) / h) - (1 / (2 * b - 1) - 1 / (2 * a - 1)) *
+            (al + 5 / 6 - 2 / (3 * h));
+        x = a / (a + b * Math.exp(2 * w));
+    } else {
+        lna = Math.log(a / (a + b));
+        lnb = Math.log(b / (a + b));
+        t = Math.exp(a * lna) / a;
+        u = Math.exp(b * lnb) / b;
+        w = t + u;
+        if (p < t / w)
+            x = Math.pow(a * w * p, 1 / a);
+        else
+            x = 1 - Math.pow(b * w * (1 - p), 1 / b);
+    }
+    afac = -gammaln(a) -gammaln(b) + gammaln(a + b);
+    for(; j < 10; j++) {
+        if (x === 0 || x === 1)
+            return x;
+        err = incompleteBeta(x, a, b) - p;
+        t = Math.exp(a1 * Math.log(x) + b1 * Math.log(1 - x) + afac);
+        u = err / t;
+        x -= (t = u / (1 - 0.5 * Math.min(1, u * (a1 / x - b1 / (1 - x)))));
+        if (x <= 0)
+            x = 0.5 * (x + t);
+        if (x >= 1)
+            x = 0.5 * (x + t + 1);
+        if (Math.abs(t) < EPS * x && j > 0)
+            break;
+    }
+    return x;
+}
+
 function regularizedIncompleteBetaInverse(p, a, b) {
     let EPS = 1e-8;
     let a1 = a - 1;
@@ -1667,10 +1812,10 @@ module.exports = {
     zInterval,
     tInterval,
     twoSampleZInterval,
-    // twoSampleTInterval,
+    twoSampleTInterval,
     onePropZInterval,
     twoPropZInterval,
-    // linRegTInterval,
+    linRegTInterval,
     randomUniform,
     randomNormal,
     randomBinomial,

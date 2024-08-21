@@ -1,7 +1,8 @@
 const {min, max, range, quartile, median, Q1, Q3, IQR, hasOutliers, sum, sampleVariance, sampleStd, populationVariance,
     populationStd, coefficientOfVariation, skewness, uniform, uniformpdf, uniformcdf, invUniform, normalpdf, normalcdf,
     invNorm, invErf, binompdf, binomcdf, invBinom, tpdf, tcdf, invT, zInterval, tInterval, twoSampleZInterval,
-    twoSampleTInterval, onePropZInterval, twoPropZInterval, linRegTInterval
+    twoSampleTInterval, onePropZInterval, twoPropZInterval, linRegTInterval, chipdf, chicdf, fpdf, fcdf, poissonpdf,
+    poissoncdf, geopdf, geocdf, pearsonCorrelation
 } = require("../index");
 
 const accuracyDescriptive = 7;
@@ -157,6 +158,53 @@ describe('Probability Distributions', () => {
         expect(invT(.513, 3)).toBeCloseTo(0.0353789245, accuracyProb);
         expect(invT(.234, 63.423)).toBeCloseTo(-0.7301285197, accuracyProb);
     })
+
+    test('chipdf', () => {
+        expect(chipdf(3, 3)).toBeCloseTo(0.154180329, accuracyProb);
+        expect(chipdf(3.42, 5)).toBeCloseTo(0.1521193308, accuracyProb);
+    })
+
+    test('chicdf', () => {
+        expect(chicdf(3, 5)).toBeCloseTo(0.3000141639, accuracyProb);
+        expect(chicdf(-1, 4, 3)).toBeCloseTo(0.7385358684, accuracyProb);
+    })
+
+    test('fpdf', () => { // failing
+        expect(fpdf(2, 3, 4)).toBeCloseTo(0.1394274, accuracyProb);
+        expect(fpdf(3.42, 5, 8)).toBeCloseTo(0.0417231351, accuracyProb);
+    })
+
+    test('fcdf', () => {
+        expect(fcdf(2, 3, 4)).toBeCloseTo(0.7436127979, accuracyProb);
+        expect(fcdf(-1.42, 5.32, 5, 10)).toBeCloseTo(0.9878660914, accuracyProb);
+    })
+
+    test('poissonpdf', () => {
+        expect(poissonpdf(3, 5)).toBeCloseTo(0.1008188134, accuracyProb);
+        expect(poissonpdf(72, 63)).toBeCloseTo(0.0278937982, accuracyProb);
+    })
+
+    test('poissoncdf', () => {
+        expect(poissoncdf(3, 5)).toBeCloseTo(0.9160820581, accuracyProb);
+        expect(poissoncdf(72, 63)).toBeCloseTo(0.1580763908, accuracyProb);
+    })
+
+    test('geopdf', () => {
+        expect(geopdf(.45, 6)).toBeCloseTo(0.0226477969, accuracyProb);
+        expect(geopdf(0.8263, 4)).toBeCloseTo(0.0043304917, accuracyProb);
+    })
+
+    test('geocdf', () => {
+        expect(geocdf(0.45, 3)).toBeCloseTo(0.833625, accuracyProb);
+        expect(geocdf(0.069, 30)).toBeCloseTo(0.8829179199, accuracyProb);
+    })
+})
+
+describe("Correlation and Regression", () => {
+
+    // test('pearson coefficient', () => {
+    //     expect(pearsonCorrelation())
+    // })
 })
 
 

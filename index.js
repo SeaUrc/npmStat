@@ -515,8 +515,12 @@ function fpdf(x, dfNum, dfDenom){
     if (x === 0){
         return 0;
     }
-    let num = Math.sqrt((((dfNum*x)**dfNum) * (dfDenom**dfDenom)) / (((dfNum**x) + dfDenom) ** (dfNum+dfDenom)));
-    return num / (x * beta(dfNum*0.5, dfDenom*0.5));
+    const d1 = dfNum, d2 = dfDenom;
+    let first = 1/beta(d1/2, d2/2);
+    let second = (d1/d2) ** (d1/2);
+    let third = x ** (d1/2 - 1);
+    let fourth = (1 + d1/d2 * x) ** (-1*(d1+d2)/2);
+    return first*second*third*fourth;
 }
 
 /*
@@ -574,7 +578,7 @@ function poissoncdf(lambda, k){
     if (!Number.isInteger(k)){
         throw new Error("k must be an non-negative integer");
     }
-    return upperIncompleteGamma(Math.floor(k+1), lambda) / (factorial(Math.floor(k)));
+    return regularizedGammaFunction(Math.floor(k+1), lambda);
 }
 
 /*
@@ -1511,7 +1515,26 @@ function gamma(z) {
     }
 }
 
-function lowerIncompleteGamma(s, z, kLimit=50){
+function gammaln(x){
+    let j = 0;
+    let cof = [
+        76.18009172947146, -86.50532032941677, 24.01409824083091,
+        -1.231739572450155, 0.1208650973866179e-2, -0.5395239384953e-5
+    ];
+    let ser = 1.000000000190015;
+    let xx, y, tmp;
+    tmp = (y = xx = x) + 5.5;
+    tmp -= (xx + 0.5) * Math.log(tmp);
+    for (; j < 6; j++)
+        ser += cof[j] / ++y;
+    return Math.log(2.5066282746310005 * ser / xx) - tmp;
+}
+
+function regularizedGammaFunction(s, x){
+    return upperIncompleteGamma(s, x, 70) / gamma(s);
+}
+
+function lowerIncompleteGamma(s, z, kLimit=70){
     let first = z**s * Math.exp(-z);
     let powerSeries = 0;
     for (let k = 0; k<=kLimit; k++){
@@ -1578,21 +1601,6 @@ function regularizedIncompleteBeta(x, a, b, maxIter=50){ // continued fraction a
     let firstPart = (x**a)*((1-x)**b) / (a * beta(a, b));
     let contFrac = recurseContinuedFractionIncompleteBeta(0, x, a, b, maxIter);
     return firstPart*contFrac;
-}
-
-function gammaln(x){
-    var j = 0;
-    var cof = [
-        76.18009172947146, -86.50532032941677, 24.01409824083091,
-        -1.231739572450155, 0.1208650973866179e-2, -0.5395239384953e-5
-    ];
-    var ser = 1.000000000190015;
-    var xx, y, tmp;
-    tmp = (y = xx = x) + 5.5;
-    tmp -= (xx + 0.5) * Math.log(tmp);
-    for (; j < 6; j++)
-        ser += cof[j] / ++y;
-    return Math.log(2.5066282746310005 * ser / xx) - tmp;
 }
 
 function betaContinuedFrac(x, a, b){
@@ -1815,7 +1823,7 @@ module.exports = {
     twoSampleTInterval,
     onePropZInterval,
     twoPropZInterval,
-    linRegTInterval,
+    // linRegTInterval,
     randomUniform,
     randomNormal,
     randomBinomial,
@@ -1826,11 +1834,16 @@ module.exports = {
     factorial,
     choose,
     gamma,
+    gammaln,
+    regularizedGammaFunction,
     lowerIncompleteGamma,
     upperIncompleteGamma,
     erf,
     invErf,
     beta,
+    incompleteBeta,
+    incompleteBetaInverse,
     regularizedIncompleteBeta,
+    regularizedIncompleteBetaInverse,
     pochhammer,
 }

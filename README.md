@@ -17,14 +17,17 @@ It can compute the following
  - variance (sample and population)
  - standard deviation (sample and population)
  - coefficient of variation
+ - skewness
 
 ### Probability Distributions
+ - uniform: pdf, cdf, inverse/quantile
  - normal: pdf, cdf, inverse/quantile
  - binomial: pdf, cdf, inverse/quantile
  - T: pdf, cdf, inverse/quantile
  - chi-squared: pdf, cdf
  - F: pdf, cdf
  - poisson: pdf, cdf
+ - geometric: pdf, cdf
 
 ### Correlation and Regression
  - pearson correlation
@@ -39,6 +42,22 @@ It can compute the following
  - χ2 test
  - χ2 goodness of fit
  - linear regression t test
+ - 2 sample f test
+ - ANOVA
+
+### Confidence Intervals
+ - z interval
+ - t interval
+ - 2 sample z interval
+ - 2 sample t interval
+ - one proportion z interval
+ - two proportion z interval
+
+### RNG
+ - random uniform
+ - random normal
+ - random binomial
+ - random poisson
 
 ### Basic Matrix Operation
  - matrix multiplication
@@ -47,14 +66,19 @@ It can compute the following
 
 ### Miscellaneous Helpers
  - factorial
- - choose (combinatorics)
+ - choose
  - gamma function
+ - gammaln function
+ - regularized gamma function
  - lower incomplete gamma function
  - upper incomplete gamma function
  - error function
  - inverse error function
  - beta function
+ - incomplete beta function
+ - incomplete beta inverse function
  - regularized incomplete beta function
+ - regularized incomplete beta inverse function
  - pochhammer
 
 

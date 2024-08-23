@@ -1338,67 +1338,81 @@ function twoPropZInterval(x1, n1, x2, n2, c){
     return [diff - moe, diff+moe];
 }
 
-function linRegTInterval(x, y, confidence) {
+/*
+* args
+* linRegTInterval(x list, y list, confidence level)
+* returns [[lower interval slope, upper interval slope], [lower intercept slope, higher intercept slope]]
+* */
+function linRegTInterval(x, y, confidence = 0.95) {
     if (x.length !== y.length) {
-        throw new Error('lengths of x and y must be equal.');
+        throw new Error("x and y must have the same length");
+    }
+    if (x.length < 3) {
+        throw new Error("At least 3 data points are required for regression");
+    }
+    if (typeof confidence !== 'number' || confidence <= 0 || confidence >= 1) {
+        throw new Error("confidence must be a number between 0 and 1");
     }
 
     const n = x.length;
     const xMean = mean(x);
     const yMean = mean(y);
 
-    // Calculate the slope (b1)
-    let xy = 0;
-    let xx = 0;
-    for (let i=0; i<n; i++){
-        xx += (x[i] - xMean)**2;
-        xy = (y[i] - yMean)*(x[i] - xMean);
+    const calculateSlope = () => {
+        let numerator = 0;
+        let denominator = 0;
+        for (let i = 0; i < n; i++) {
+            numerator += (x[i] - xMean) * (y[i] - yMean);
+            denominator += Math.pow(x[i] - xMean, 2);
+        }
+        return numerator / denominator;
+    };
+
+    const slope = calculateSlope();
+    const intercept = yMean - slope * xMean;
+
+    if (isNaN(slope) || !isFinite(slope)) {
+        throw new Error(`bad slope: ${slope}`);
     }
 
-    const b1 = xx/xy;
-    const b0 = yMean - b1*xMean;
+    const calculateSE = () => {
+        let sumSquaredResiduals = 0;
+        for (let i = 0; i < n; i++) {
+            const predictedY = slope * x[i] + intercept;
+            sumSquaredResiduals += Math.pow(y[i] - predictedY, 2);
+        }
+        return Math.sqrt(sumSquaredResiduals / (n - 2));
+    };
 
-    console.log(b1, b0);
+    const se = calculateSE();
 
-    // Calculate the predicted values (yHat)
-    const yHat = x.map(xi => b0 + b1 * xi);
+    const calculateSxx = () => {
+        return x.reduce((sum, value) => sum + Math.pow(value - xMean, 2), 0);
+    };
 
-    // console.log(yHat);
+    const sxx = calculateSxx();
 
-    const idk = yHat.map((yi, i) => (y[i] - yi)**2);
-    // console.log(idk);
-    const MSE = sum(idk)/(n-2);
-    // console.log(MSE);
+    if (sxx === 0) {
+        throw new Error("Zero variance in x");
+    }
 
-    // let MSE = 0;
-    // for (let i=0; i<n; i++){
-    //     let res = y[i] - yHat;
-    //     console.log(res);
-    //     MSE += res**2;
-    //
-    // }
-    // MSE /= (n-2);
+    const seSlope = se / Math.sqrt(sxx);
+    const seIntercept = se * Math.sqrt(1/n + Math.pow(xMean, 2) / sxx);
 
-
-
-    // Calculate the standard error of the slope (SE_b1)
-    const SEb1 = Math.sqrt(MSE / xx);
-    const SEb0= Math.sqrt(MSE * (1/n + (xMean**2) / xx));
-    // Degrees of freedom
+    // Calculate degrees of freedom and t-value
     const df = n - 2;
+    const tValue = invT( 1 - (1 - confidence) / 2, df);
 
-    // console.log(SEb1, SEb0);
+    // Calculate confidence intervals
+    const slopeInterval = [slope - tValue * seSlope, slope + tValue * seSlope];
+    const interceptInterval = [intercept - tValue * seIntercept, intercept + tValue * seIntercept];
 
-    // Get the critical t-value
-    const tCrit = invT((1+confidence) / 2, df);
-
-    // Calculate the margin of error
-    const moeB1 = tCrit * SEb1;
-    const moeB0 = tCrit * SEb0;
-
-
-    return [b1-moeB1, b1+moeB1, b0-moeB0, b0+moeB0];
+    return [
+        slopeInterval,
+        interceptInterval
+    ];
 }
+
 
 /* --- RNG --- */
 function randomUniform(min = 0, max = 1){
@@ -1823,7 +1837,7 @@ module.exports = {
     twoSampleTInterval,
     onePropZInterval,
     twoPropZInterval,
-    // linRegTInterval,
+    linRegTInterval,
     randomUniform,
     randomNormal,
     randomBinomial,

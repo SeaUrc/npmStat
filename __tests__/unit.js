@@ -207,6 +207,10 @@ describe("Correlation and Regression", () => {
     // })
 })
 
+describe('hypothesis testing', () => {
+
+})
+
 
 const accuracyInterval = 5;
 
@@ -265,11 +269,14 @@ describe('Confidence Intervals', () => {
 
     test('linRegTInterval', () => {
         let x1 = [1, 2.3, 4.256, 5.4, 5.61, 5.64, 6.47, 8.16];
-        let y1 = [-1.543, 2.45, 0.174, 1.4354, 5.4325, 4.5316, 3.65, 12.1];
-        let [b1low, b1up, b2low, b2up] = linRegTInterval(x1, y1, .95);
+        let y1 = [-1.543, -2.45, 0.174, 1.4354, 5.4325, 4.5316, 3.65, 12.1];
+        let [[b1low, b1up], [b2low, b2up]] = linRegTInterval(x1, y1, .95);
 
-        expect(b1low).toBeCloseTo(0.2223655, accuracyInterval);
-        expect(b1up).toBeCloseTo( 2.372742, accuracyInterval);
+        expect(b1low).toBeCloseTo(0.8734064, accuracyInterval);
+        expect(b1up).toBeCloseTo(  2.741258971, accuracyInterval);
+
+        expect(b2low).toBeCloseTo( -10.81348602, accuracyInterval);
+        expect(b2up).toBeCloseTo(-0.9012821, accuracyInterval);
     })
 })
 

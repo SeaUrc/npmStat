@@ -1,8 +1,7 @@
 # Statlib
 
 ## Description
-W.I.P.
-Zero dependency package aimed to handle statistics found at a college introductory level.<br>
+Lightweight, zero dependency package aimed to handle statistics found at a college introductory level.<br>
 It can compute the following
 
 ### Descriptive statistics
@@ -80,7 +79,3 @@ It can compute the following
  - regularized incomplete beta function
  - regularized incomplete beta inverse function
  - pochhammer
-
-
-If you find any problems, open an issue on github.
-I'm still adding new function pretty regularly.

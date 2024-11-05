@@ -37,6 +37,30 @@ function range(a) {
     return max(a) - min(a);
 }
 
+function mode(a){
+    if (!a.length) {
+        throw new Error("Array is empty");
+    }
+    const frequencyMap = {};
+    let maxFreq = 0;
+    let mode = [];
+
+    for (let num of a) {
+        frequencyMap[num] = (frequencyMap[num] || 0) + 1;
+        if (frequencyMap[num] > maxFreq) {
+            maxFreq = frequencyMap[num];
+        }
+    }
+
+    for (let num in frequencyMap) {
+        if (frequencyMap[num] === maxFreq) {
+            mode.push(Number(num));
+        }
+    }
+
+    return mode.length === 1 ? mode[0] : mode;
+}
+
 function quartile(a, percentile) {
     if (!a.length) {
         throw new Error("Array is empty");
@@ -1512,6 +1536,23 @@ function choose(N, K){
     return ((factorial(N)) / (factorial(K) * factorial(N-K)));
 }
 
+function chebyshevCoeff(n, m) {
+    let coeffs = Array.from({ length: n + 1 }, () => Array(n + 1).fill(0));
+
+    coeffs[0][0] = 1;
+    if (n > 0) coeffs[1][1] = 1;
+
+    for (let i = 2; i <= n; i++) {
+        for (let j = 0; j <= i; j++) {
+            if (j > 0) coeffs[i][j] += 2 * coeffs[i - 1][j - 1];
+            coeffs[i][j] -= coeffs[i - 2][j];
+        }
+    }
+
+    return coeffs[n][m] || 0;
+}
+
+
 function gamma(z) {
     // Lanczos approximation
     let g = 7;
@@ -1521,7 +1562,7 @@ function gamma(z) {
     } else {
         z -= 1;
         let x = C[0];
-        for (var i = 1; i < g + 2; i++)
+        for (let i = 1; i < g + 2; i++)
             x += C[i] / (z + i);
 
         let t = z + g + 0.5;
@@ -1787,6 +1828,7 @@ module.exports = {
     range,
     quartile,
     median,
+    mode,
     Q1,
     Q3,
     IQR,
@@ -1820,6 +1862,7 @@ module.exports = {
     geopdf,
     geocdf,
     pearsonCorrelation,
+    linearRegression,
     zTest,
     twoSampleZTest,
     onePropZTest,

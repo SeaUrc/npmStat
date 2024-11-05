@@ -2,8 +2,16 @@ const {min, max, range, quartile, median, Q1, Q3, IQR, hasOutliers, sum, sampleV
     populationStd, coefficientOfVariation, skewness, uniform, uniformpdf, uniformcdf, invUniform, normalpdf, normalcdf,
     invNorm, invErf, binompdf, binomcdf, invBinom, tpdf, tcdf, invT, zInterval, tInterval, twoSampleZInterval,
     twoSampleTInterval, onePropZInterval, twoPropZInterval, linRegTInterval, chipdf, chicdf, fpdf, fcdf, poissonpdf,
-    poissoncdf, geopdf, geocdf, pearsonCorrelation
+    poissoncdf, geopdf, geocdf, pearsonCorrelation, gamma
 } = require("../index");
+
+const helperFunc = 10;
+
+describe("Helper functions", () => {
+    test('gamma()', () => {
+        expect(gamma(3)).toBeCloseTo(2, helperFunc);
+    })
+})
 
 const accuracyDescriptive = 7;
 
